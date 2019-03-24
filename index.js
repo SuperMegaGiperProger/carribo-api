@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
-app.get('/ads/:id', (request, response) => {
+app.get('v1/ads/:id', (request, response) => {
     //select
     console.log(request.params.id);
     response.send({
@@ -12,7 +12,7 @@ app.get('/ads/:id', (request, response) => {
     });
 });
 
-app.put('/ads/:id', (request, response) => {
+app.put('v1/ads/:id', (request, response) => {
     //update
     console.log(request.params.id);
     response.send({
@@ -22,7 +22,7 @@ app.put('/ads/:id', (request, response) => {
     });
 });
 
-app.delete('/ads/:id', (request, response) => {
+app.delete('v1/ads/:id', (request, response) => {
     //delete
     console.log(request.params.id);
     response.send({
@@ -32,7 +32,7 @@ app.delete('/ads/:id', (request, response) => {
     });
 });
 
-app.post('/ads', (request, response) => {
+app.post('v1/ads', (request, response) => {
     // insert
     response.send({
         "id": 3,
@@ -41,7 +41,7 @@ app.post('/ads', (request, response) => {
     });
 });
 
-app.get('/ads', (request, response) => {
+app.get('v1/ads', (request, response) => {
     const ads = [
         {
           "id": 1,
