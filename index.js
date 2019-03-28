@@ -9,19 +9,16 @@ const connection = mysql.createConnection(config);
  
 connection.connect();
 
-app.get('v1/ads/:id', (request, response) => {
-    //select
-    console.log(request.params.id);
-    response.send({
-        "id": 4,
-        "cost": 80000,
-        "description": "Volvo XC90",
+app.get('/v1/ads/:id', (request, response) => {
+    const id = request.params.id;
+    connection.query(`SELECT * FROM ads WHERE ads.id = ${id}`, (err, result) => {
+        if (err) throw err;
+        response.send(result);
     });
 });
 
-app.put('v1/ads/:id', (request, response) => {
-    //update
-    console.log(request.params.id);
+app.put('/v1/ads/:id', (request, response) => {
+    const id = request.params.id;
     response.send({
         "id": 3,
         "cost": 47000,
@@ -29,17 +26,16 @@ app.put('v1/ads/:id', (request, response) => {
     });
 });
 
-app.delete('v1/ads/:id', (request, response) => {
+app.delete('/v1/ads/:id', (request, response) => {
     //delete
-    console.log(request.params.id);
-    response.send({
-        "id": 5,
-        "cost": 8410,
-        "description": "For sale",
+    const id = request.params.id;
+    connection.query(`DELETE FROM ads WHERE ads.id = ${id}`, (err, result) => {
+        if (err) throw err;
+        response.send(result);
     });
 });
 
-app.post('v1/ads', (request, response) => {
+app.post('/v1/ads', (request, response) => {
     // insert
     response.send({
         "id": 3,
@@ -48,20 +44,11 @@ app.post('v1/ads', (request, response) => {
     });
 });
 
-app.get('v1/ads', (request, response) => {
-    const ads = [
-        {
-          "id": 1,
-          "cost": 2000,
-          "description": "asfasdf",
-        },
-        {
-        "id": 2,
-        "cost": 4000,
-        },
-    ];
-    console.log(ads)
-    response.send(ads);
+app.get('/v1/ads', (request, response) => {
+    connection.query('SELECT * FROM ads', (err, result) => {
+        if (err) throw err;
+        response.send(result);
+    });
 });
 
 app.listen(port, (err) => {
