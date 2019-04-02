@@ -20,7 +20,7 @@ app.use(bodyParser.urlencoded({
 
 app.use(bodyParser.json());
 
-app.post('/login', handlers.login);
+app.post('/v1/login', handlers.login);
 
 app.get('/v1/ads/:id', (req, res) => {
     const id = req.params.id;
