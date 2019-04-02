@@ -2,7 +2,6 @@ const express = require('express');
 const mysql = require('mysql');
 const jwt = require('jsonwebtoken');
 const dbConfig = require('./config/db');
-const jwtConfig = require('./config/jwt.js');
 const bodyParser = require('body-parser');
 const middleware = require('./middleware');
 const HandlerGenerator = require('./jwt/HandlerGenerator');
@@ -22,58 +21,58 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 app.post('/login', handlers.login);
-app.get('/', middleware.checkToken, (req, res) => {
-    jwt.verify(req.token, jwtConfig.secret, (err, authorizedData) => {
-        if (err) {
-            res.sendStatus(403);
-        } else {
-            res.json({
-                message: 'Successful log in',
-                authorizedData,
+
+app.get('/v1/ads/:id', (req, res) => {
+    const id = req.params.id;
+    connection.query(`SELECT * FROM ads WHERE ads.id = ${id}`, (err, result) => {
+        if (err) throw err;
+        res.send(result);
+    });
+});
+
+app.put('/v1/ads/:id', middleware.checkToken, (req, res) => {
+    //update
+    const id = req.params.id;
+    connection.query(`SELECT author_id FROM ads WHERE id = ${id}`, (err, result) => {
+        if (result[0] && result[0].author_id === req.user.id) {
+            res.send({
+                "id": 3,
+                "cost": 47000,
+                "description": "Audi A3 for sale",
             });
+        } else {
+            res.sendStatus(403);
         }
     });
 });
 
-app.get('/v1/ads/:id', (request, response) => {
-    const id = request.params.id;
-    connection.query(`SELECT * FROM ads WHERE ads.id = ${id}`, (err, result) => {
-        if (err) throw err;
-        response.send(result);
+app.delete('/v1/ads/:id', middleware.checkToken, (req, res) => {
+    const id = req.params.id;
+    connection.query(`SELECT author_id FROM ads WHERE id = ${id}`, (err, result) => {
+        if (result[0].author_id === req.user.id) {
+            connection.query(`DELETE FROM ads WHERE ads.id = ${id}`, (err, result) => {
+                res.sendStatus(204);
+            });
+        } else {
+            res.sendStatus(403);
+        }
     });
 });
 
-app.put('/v1/ads/:id', (request, response) => {
-    const id = request.params.id;
-    response.send({
-        "id": 3,
-        "cost": 47000,
-        "description": "Audi A3 for sale",
-    });
-});
-
-app.delete('/v1/ads/:id', (request, response) => {
-    //delete
-    const id = request.params.id;
-    connection.query(`DELETE FROM ads WHERE ads.id = ${id}`, (err, result) => {
-        if (err) throw err;
-        response.send(result);
-    });
-});
-
-app.post('/v1/ads', (request, response) => {
+app.post('/v1/ads', middleware.checkToken, (req, res) => {
     // insert
-    response.send({
+    // connection.query(`INSERT INTO ads (cost, description, header, )`, (err, result) => {
+    res.send({
         "id": 3,
         "cost": 47000,
         "description": "Audi A3",
     });
 });
 
-app.get('/v1/ads', (request, response) => {
+app.get('/v1/ads', (req, res) => {
     connection.query('SELECT * FROM ads', (err, result) => {
         if (err) throw err;
-        response.send(result);
+        res.send(result);
     });
 });
 
