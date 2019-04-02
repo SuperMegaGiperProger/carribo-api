@@ -1,13 +1,39 @@
 const express = require('express');
 const mysql = require('mysql');
-const config = require('./config/db')
+const jwt = require('jsonwebtoken');
+const dbConfig = require('./config/db');
+const jwtConfig = require('./config/jwt.js');
+const bodyParser = require('body-parser');
+const middleware = require('./middleware');
+const HandlerGenerator = require('./jwt/HandlerGenerator');
 
 const app = express();
 const port = 3000;
 
-const connection = mysql.createConnection(config);
- 
+const connection = mysql.createConnection(dbConfig); 
 connection.connect();
+
+const handlers = new HandlerGenerator();
+
+app.use(bodyParser.urlencoded({
+    extended: true,
+}));
+
+app.use(bodyParser.json());
+
+app.post('/login', handlers.login);
+app.get('/', middleware.checkToken, (req, res) => {
+    jwt.verify(req.token, jwtConfig.secret, (err, authorizedData) => {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            res.json({
+                message: 'Successful log in',
+                authorizedData,
+            });
+        }
+    });
+});
 
 app.get('/v1/ads/:id', (request, response) => {
     const id = request.params.id;
