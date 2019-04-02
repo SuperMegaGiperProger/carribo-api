@@ -46,18 +46,18 @@ VALUES
 
 
 INSERT INTO `ads`
-  (`cost` , `description`                     , `header`                                        , `location_id` , `engine_capacity` , `power` , `engine_type` , `year_of_production` , `brand`      , `model`        , `mileage`)
+  (`author_id` , `cost` , `description`                     , `header`                                        , `location_id` , `engine_capacity` , `power` , `engine_type` , `year_of_production` , `brand`      , `model`        , `mileage`)
 VALUES
-  (3000   , 'For sale: audi a3!'              , 'Audi A3'                                       , 1             , 2.3               , 120     , 'petrol'      , '1998'               , 'Audi'       , 'a3'           , 120000) ,
-  (5000   , 'New kia rio 2 with low mileage!' , 'Kia Rio 2'                                     , 2             , 1.4               , 97      , 'petrol'      , '2006'               , 'Kia'        , 'Rio 2'        , 190350) ,
-  (6000   , 'For sale: legendary ford focus'  , 'Ford Focus TDI'                                , 3             , 3.0               , 150     , 'diesel'      , '1991'               , 'Ford'       , 'Focus'        , 450000) ,
-  (20000  , 'Hybrid prius! Eco!'              , 'Prius Two'                                     , 4             , 1.8               , null    , 'hybrid'      , '2008'               , 'Toyota'     , 'Prius 2'      , 270000) ,
-  (48000  , 'New luxury volvo XC90'           , 'Newiest volvo xc90'                            , 5             , 2.3               , 320     , 'petrol'      , '2019'               , 'Volvo'      , 'XC90'         , 10000)  ,
-  (41000  , 'New electric tesla S'            , 'Electric tesla'                                , 6             , null              , null    , 'electric'    , '2019'               , 'Tesla'      , 'Model S'      , 2000)   ,
-  (130000 , 'Fast legendary 911'              , 'Porsche 911 Carera S, low cost! new! for sale' , 7             , 3.0               , 450     , 'petrol'      , '2018'               , 'Porsche'    , '911 Carera S' , 3000)   ,
-  (10000  , ''                                , 'VW Polo 2015'                                  , 8             , 2.1               , 130     , 'petrol'      , '2015'               , 'Volkswagen' , 'Polo'         , 80000)  ,
-  (3000   , 'Na hody'                         , 'Opel Astra 1997'                               , 9             , 2.5               , 100     , 'diesel'      , '1997'               , 'Opel'       , 'Astra'        , 700000) ,
-  (7800   , 'new model of toyota camry'       , 'Newiest toyta camry 2019'                      , 10            , 2.6               , 140     , 'petrol'      , '2019'               , 'Toyota'     , 'Camry'        , NULL)   ;
+  (1           , 3000   , 'For sale: audi a3!'              , 'Audi A3'                                       , 1             , 2.3               , 120     , 'petrol'      , '1998'               , 'Audi'       , 'a3'           , 120000) ,
+  (1           , 5000   , 'New kia rio 2 with low mileage!' , 'Kia Rio 2'                                     , 2             , 1.4               , 97      , 'petrol'      , '2006'               , 'Kia'        , 'Rio 2'        , 190350) ,
+  (2           , 6000   , 'For sale: legendary ford focus'  , 'Ford Focus TDI'                                , 3             , 3.0               , 150     , 'diesel'      , '1991'               , 'Ford'       , 'Focus'        , 450000) ,
+  (4           , 20000  , 'Hybrid prius! Eco!'              , 'Prius Two'                                     , 4             , 1.8               , null    , 'hybrid'      , '2008'               , 'Toyota'     , 'Prius 2'      , 270000) ,
+  (6           , 48000  , 'New luxury volvo XC90'           , 'Newiest volvo xc90'                            , 5             , 2.3               , 320     , 'petrol'      , '2019'               , 'Volvo'      , 'XC90'         , 10000)  ,
+  (6           , 41000  , 'New electric tesla S'            , 'Electric tesla'                                , 6             , null              , null    , 'electric'    , '2019'               , 'Tesla'      , 'Model S'      , 2000)   ,
+  (7           , 130000 , 'Fast legendary 911'              , 'Porsche 911 Carera S, low cost! new! for sale' , 7             , 3.0               , 450     , 'petrol'      , '2018'               , 'Porsche'    , '911 Carera S' , 3000)   ,
+  (8           , 10000  , ''                                , 'VW Polo 2015'                                  , 8             , 2.1               , 130     , 'petrol'      , '2015'               , 'Volkswagen' , 'Polo'         , 80000)  ,
+  (9           , 3000   , 'Na hody'                         , 'Opel Astra 1997'                               , 9             , 2.5               , 100     , 'diesel'      , '1997'               , 'Opel'       , 'Astra'        , 700000) ,
+  (9           , 7800   , 'new model of toyota camry'       , 'Newiest toyta camry 2019'                      , 10            , 2.6               , 140     , 'petrol'      , '2019'               , 'Toyota'     , 'Camry'        , NULL)   ;
 
 
 INSERT INTO `characteristics`
