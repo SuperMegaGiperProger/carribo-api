@@ -14,6 +14,22 @@ connection.connect();
 
 const handlers = new HandlerGenerator();
 
+const destinationCountry = 'Belarus';
+
+function calculateFinalCost(ad) {
+    return new Promise ((resolve, reject) => {
+        const countryName = `SELECT country_name FROM locations WHERE id = ${ad.location_id}`;
+        connection.query(`SELECT formula FROM cost_dependencies WHERE destination_country_name = '${destinationCountry}'
+        and source_country_name = (${countryName})`, (err, result) => {
+            if (err) {
+                reject(err);
+            }
+            const payload = result[0] ? result[0].formula : '';
+            resolve(payload);
+        });
+    });
+}
+
 app.use(bodyParser.urlencoded({
     extended: true,
 }));
@@ -26,7 +42,10 @@ app.get('/v1/ads/:id', (req, res) => {
     const id = req.params.id;
     connection.query(`SELECT * FROM ads WHERE ads.id = ${id}`, (err, result) => {
         if (err) throw err;
-        res.send(result);
+        calculateFinalCost(result[0]).then((finalCost) => {
+            result[0].finalCost = finalCost ? Math.round(eval(finalCost.replace('{cost}', result[0].cost))) : result[0].cost;            
+            res.send(result[0]);
+        });
     });
 });
 
@@ -72,7 +91,17 @@ app.post('/v1/ads', middleware.checkToken, (req, res) => {
 app.get('/v1/ads', (req, res) => {
     connection.query('SELECT * FROM ads', (err, result) => {
         if (err) throw err;
-        res.send(result);
+
+        const promises = [];
+        result.forEach((ad) => {            
+            promises.push(calculateFinalCost(ad).then((finalCost) => {       
+                ad.finalCost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : ad.cost;
+            }));
+        });
+
+        Promise.all(promises).then(() => {
+            res.send(result);
+        })
     });
 });
 
