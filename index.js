@@ -30,6 +30,17 @@ function calculateFinalCost(ad) {
     });
 }
 
+function getAdPhotos(ad) {
+    return new Promise((resolve, reject) => {
+        connection.query(`SELECT photo_id FROM ad_photos WHERE ad_id = '${ad.id}'`, (err, result) => {
+            if (err) {
+                reject(err);
+            }
+            resolve(result.map((photo) => photo.photo_id));
+        });
+    });
+}
+
 app.use(bodyParser.urlencoded({
     extended: true,
 }));
@@ -46,6 +57,21 @@ app.get('/v1/ads/:id', (req, res) => {
             result[0].finalCost = finalCost ? Math.round(eval(finalCost.replace('{cost}', result[0].cost))) : result[0].cost;            
             res.send(result[0]);
         });
+    });
+});
+
+app.get('/v1/ads/:ad_id/photos/:photo_id', (req, res) => {
+    const adId = req.params.ad_id;
+    const photoId = req.params.photo_id;
+    connection.query(`SELECT photo_id FROM ad_photos WHERE ad_id = ${adId} and photo_id = ${photoId}`, (err, result) => {
+        if (result.length) {
+            connection.query(`SELECT path FROM photos WHERE id = ${photoId}`, (err, result) => {
+                const photoPath = result[0].path;
+                res.sendFile(require('path').dirname(require.main.filename) + photoPath);
+            });
+        } else {
+            res.sendStatus(404);
+        }
     });
 });
 
@@ -96,6 +122,9 @@ app.get('/v1/ads', (req, res) => {
         result.forEach((ad) => {            
             promises.push(calculateFinalCost(ad).then((finalCost) => {       
                 ad.finalCost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : ad.cost;
+            }));
+            promises.push(getAdPhotos(ad).then((photosId) => {
+                ad.photos_id = photosId;
             }));
         });
 
