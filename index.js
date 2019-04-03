@@ -43,7 +43,7 @@ app.get('/v1/ads/:id', (req, res) => {
     connection.query(`SELECT * FROM ads WHERE ads.id = ${id}`, (err, result) => {
         if (err) throw err;
         calculateFinalCost(result[0]).then((finalCost) => {
-            result[0].finalCost = finalCost ? Math.round(eval(finalCost.replace('{cost}', result[0].cost))) : result[0].cost;            
+            result[0].final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', result[0].cost))) : result[0].cost;            
             res.send(result[0]);
         });
     });
@@ -95,7 +95,7 @@ app.get('/v1/ads', (req, res) => {
         const promises = [];
         result.forEach((ad) => {            
             promises.push(calculateFinalCost(ad).then((finalCost) => {       
-                ad.finalCost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : ad.cost;
+                ad.final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : ad.cost;
             }));
         });
 
