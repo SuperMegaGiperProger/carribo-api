@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
-const jwtConfig = require('./config/jwt.js');
+const jwtConfig = require('../config/jwt.js');
 const mysql = require('mysql');
-const dbConfig = require('./config/db');
+const dbConfig = require('../config/db');
 
 const connection = mysql.createConnection(dbConfig); 
 connection.connect();
@@ -32,6 +32,4 @@ const checkToken = (req, res, next) => {
     }
   };
   
-module.exports = {
-    checkToken: checkToken
-}
+module.exports = checkToken;
