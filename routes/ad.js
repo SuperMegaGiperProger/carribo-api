@@ -34,19 +34,34 @@ function getAdPhotos(ad) {
 module.exports.read = (req, res) => {
   const id = req.params.id;
   connection.query(`SELECT * FROM ads WHERE ads.id = ${id}`, (err, result) => {
-      if (err) throw err;
+      if (err) {
+          res.sendStatus(500);
+          return;
+      }
+      if (!result.length) {
+          res.sendStatus(404);
+          return;
+      }
       calculateFinalCost(result[0]).then((finalCost) => {
           result[0].final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', result[0].cost))) : result[0].cost;            
           res.send(result[0]);
-      });
+      }).catch(() => res.sendStatus(500));
   });
 }
 
 module.exports.delete = (req, res) => {
     const id = req.params.id;
     connection.query(`SELECT author_id FROM ads WHERE id = ${id}`, (err, result) => {
+        if (err) {
+            res.sendStatus(500);
+            return;
+        }
         if (result[0].author_id === req.user.id) {
             connection.query(`DELETE FROM ads WHERE ads.id = ${id}`, (err, result) => {
+                if (err) {
+                    res.sendStatus(500);
+                    return;
+                }
                 res.sendStatus(204);
             });
         } else {
@@ -58,6 +73,10 @@ module.exports.delete = (req, res) => {
 module.exports.update = (req, res) => {
     const id = req.params.id;
     connection.query(`SELECT author_id FROM ads WHERE id = ${id}`, (err, result) => {
+        if (err) {
+            res.sendStatus(500);
+            return;
+        }
         if (result[0] && result[0].author_id === req.user.id) {
             res.send({
                 "id": 3,
@@ -76,25 +95,33 @@ module.exports.create = (req, res) => {
         power, engine_type, year_of_production, brand, model, mileage, location_id) VALUES (${newAd.cost}, '${newAd.description}',
         '${newAd.header}', ${newAd.engine_capacity}, ${newAd.power}, '${newAd.engine_type}', ${newAd.year_of_production},
         '${newAd.brand}', '${newAd.model}', ${newAd.mileage}, 10)`, (err, result) => {
-        const createdAd = result;
-        res.status(201).json(createdAd);
+            if (err) {
+                res.sendStatus(500);
+                return;
+            }
+            const createdAd = result;
+            res.status(201).json(createdAd);
     });
 }
 
 module.exports.readAll = (req, res) => {
-    connection.query('SELECT * FROM ads', (_, result) => {
+    connection.query('SELECT * FROM ads', (err, result) => {
+        if (err) {
+            res.sendStatus(500);
+            return;
+        }
         const promises = [];
         result.forEach((ad) => {            
             promises.push(calculateFinalCost(ad).then((finalCost) => {       
                 ad.final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : null;
-            }));
+            }).catch(() => res.sendStatus(500)));
             promises.push(getAdPhotos(ad).then((photoIds) => {
                 ad.photo_ids = photoIds;
-            }));
+            }).catch(() => res.sendStatus(500)));
         });
 
         Promise.all(promises).then(() => {
             res.send(result);
-        })
+        }).catch(() => res.sendStatus(500));
     });
 }
