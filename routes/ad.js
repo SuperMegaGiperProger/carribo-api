@@ -86,10 +86,10 @@ module.exports.readAll = (req, res) => {
         const promises = [];
         result.forEach((ad) => {            
             promises.push(calculateFinalCost(ad).then((finalCost) => {       
-                ad.final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : ad.cost;
+                ad.final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : null;
             }));
-            promises.push(getAdPhotos(ad).then((photosId) => {
-                ad.photos_id = photosId;
+            promises.push(getAdPhotos(ad).then((photoIds) => {
+                ad.photo_ids = photoIds;
             }));
         });
 
