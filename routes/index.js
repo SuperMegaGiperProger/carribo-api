@@ -4,7 +4,7 @@ const photo = require('./photo');
 
 const checkToken = require('../middleware/checkToken');
 
-module.exports = function (app) {
+module.exports = (app) => {
   app.post('/v1/login', userSession.create);
   app.get('/v1/ads/:id', ad.read);
   app.delete('/v1/ads/:id', checkToken, ad.delete);
@@ -12,4 +12,4 @@ module.exports = function (app) {
   app.post('/v1/ads', ad.create);
   app.get('/v1/ads', ad.readAll);
   app.get('/v1/ads/:ad_id/photos/:photo_id', photo.read);
-}
+};

@@ -1,12 +1,12 @@
-module.exports = function (app, express) {
-  const bodyParser = require('body-parser');
-  const router = require('../routes');
+const bodyParser = require('body-parser');
+const router = require('../routes');
 
+module.exports = (app) => {
   app.use(bodyParser.urlencoded({
-      extended: true,
+    extended: true,
   }));
 
   app.use(bodyParser.json());
-  
+
   router(app);
-}
+};
