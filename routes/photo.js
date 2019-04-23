@@ -1,8 +1,11 @@
 const mysql = require('mysql');
+const path = require('path');
 const dbConfig = require('../config/db');
 
 const connection = mysql.createConnection(dbConfig);
 connection.connect();
+
+const UPLOADS_PATH = 'public/uploads';
 
 module.exports.read = (req, res) => {
   const adId = req.params.ad_id;
@@ -19,7 +22,7 @@ module.exports.read = (req, res) => {
           return;
         }
         const photoPath = result[0].path;
-        res.sendFile(require('path').dirname(require.main.filename) + photoPath);
+        res.sendFile(path.join(path.dirname(require.main.filename), UPLOADS_PATH, photoPath));
       });
     } else {
       res.sendStatus(404);
