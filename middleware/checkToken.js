@@ -7,10 +7,8 @@ const connection = mysql.createConnection(dbConfig);
 connection.connect();
 
 const checkToken = (req, res, next) => {
-  const header = req.headers['x-access-token'] || req.headers.authorization;
-
-  if (header) {
-    const token = header;
+  if (req.cookies) {
+    const { token } = req.cookies;
 
     jwt.verify(token, jwtConfig.secret, (err, user) => {
       if (err) {
