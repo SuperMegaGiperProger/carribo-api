@@ -3,7 +3,6 @@
 
 ## SPP Labs TODO
 - Ad creation (with photos upload)
-- Check REST adherence (routes, response statuses)
 - Send token with httponly cookie
 - API v2: GraphQL
 - Sockets: implement chat?
