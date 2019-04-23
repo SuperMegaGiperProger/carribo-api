@@ -5,7 +5,7 @@ const photo = require('./photo');
 const checkToken = require('../middleware/checkToken');
 
 module.exports = (app) => {
-  app.post('/v1/login', userSession.create);
+  app.post('/v1/user_session', userSession.create);
   app.get('/v1/ads/:id', ad.read);
   app.delete('/v1/ads/:id', checkToken, ad.delete);
   app.put('/v1/ads/:id', checkToken, ad.update);
