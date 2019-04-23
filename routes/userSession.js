@@ -20,7 +20,8 @@ module.exports.create = (req, res) => {
       const token = jwt.sign({ username, password },
         jwtConfig.secret,
         { expiresIn: '180d' });
-      res.json({ token });
+      res.cookie('token', token, { httpOnly: true });
+      res.json(token);
     } else {
       res.status(403).send('Invalid username or password');
     }
