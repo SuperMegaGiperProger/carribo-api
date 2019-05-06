@@ -105,24 +105,34 @@ module.exports.create = (req, res) => {
   });
 };
 
-module.exports.readAll = (req, res) => {
-  connection.query('SELECT * FROM ads', (err, result) => {
-    if (err) {
-      res.sendStatus(500);
-      return;
-    }
-    const promises = [];
-    result.forEach((ad) => {
-      promises.push(calculateFinalCost(ad).then((finalCost) => {
-        ad.final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : null;
-      }).catch(() => res.sendStatus(500)));
-      promises.push(getAdPhotos(ad).then((photoIds) => {
-        ad.photo_ids = photoIds;
-      }).catch(() => res.sendStatus(500)));
-    });
+function getAllAds() {
+  return new Promise((resolve, reject) => {
+    connection.query('SELECT * FROM ads', (err, result) => {
+      if (err) {
+        reject(err);
+      }
 
-    Promise.all(promises).then(() => {
-      res.send(result);
-    }).catch(() => res.sendStatus(500));
+      const ads = result;
+      const promises = [];
+
+      ads.forEach((ad) => {
+        promises.push(calculateFinalCost(ad).then((finalCost) => {
+          // eslint-disable-next-line no-param-reassign
+          ad.final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : null;
+        }));
+        promises.push(getAdPhotos(ad).then((photoIds) => {
+          // eslint-disable-next-line no-param-reassign
+          ad.photo_ids = photoIds;
+        }));
+      });
+
+      Promise.all(promises).then(() => resolve(result));
+    });
   });
+}
+
+module.exports.readAll = (req, res) => {
+  getAllAds().then(result => res.send(result)).catch(() => res.sendStatus(500));
 };
+
+module.exports.getAllAds = getAllAds;
