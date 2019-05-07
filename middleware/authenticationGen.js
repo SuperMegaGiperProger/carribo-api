@@ -6,17 +6,23 @@ const dbConfig = require('../config/db');
 const connection = mysql.createConnection(dbConfig);
 connection.connect();
 
-const checkToken = (req, res, next) => {
-  if (req.cookies) {
+const authenticationGen = toValidate => (req, res, next) => {
+  const errorHandler = () => {
+    if (toValidate) {
+      res.sendStatus(403);
+    }
+  };
+
+  if (req.cookies && req.cookies.token) {
     const { token } = req.cookies;
 
     jwt.verify(token, jwtConfig.secret, (err, user) => {
       if (err) {
-        res.sendStatus(403);
+        errorHandler();
       } else {
         connection.query(`SELECT id FROM users WHERE username='${user.username}' AND password='${user.password}'`, (error, result) => {
           if (error) {
-            res.sendStatus(403);
+            errorHandler();
           }
           if (result[0]) {
             req.user = result[0];
@@ -26,8 +32,8 @@ const checkToken = (req, res, next) => {
       }
     });
   } else {
-    res.sendStatus(403);
+    errorHandler();
   }
 };
 
-module.exports = checkToken;
+module.exports = authenticationGen;

@@ -33,9 +33,18 @@ function getAdPhotos(ad) {
   });
 }
 
-function getAd(id) {
+function getAd(adId, userId) {
+  const escapedUserId = connection.escape(userId);
+  const escapedAdId = connection.escape(adId);
+
+  const gettingAdQuery = userId
+    ? ('SELECT DISTINCT ads.*, wish_ads.user_id AS is_wishing FROM ads'
+       + ` LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id`
+       + ` WHERE ads.id = ${escapedAdId};`)
+    : `SELECT * FROM ads WHERE ads.id = ${escapedAdId};`;
+
   return new Promise((resolve, reject) => {
-    connection.query(`SELECT * FROM ads WHERE ads.id = ${id}`, (err, result) => {
+    connection.query(gettingAdQuery, (err, result) => {
       if (err) {
         reject(err);
         return;
@@ -46,7 +55,7 @@ function getAd(id) {
 
       calculateFinalCost(result[0]).then((finalCost) => {
         // eslint-disable-next-line no-param-reassign
-        result[0].final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', result[0].cost))) : result[0].cost;
+        result[0].final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', result[0].cost))) : null;
         resolve(result[0]);
       }).catch(() => reject());
     });
@@ -55,7 +64,9 @@ function getAd(id) {
 
 function read(req, res) {
   const { id } = req.params;
-  getAd(id).then((ad) => {
+  const userId = req.user ? req.user.id : null;
+
+  getAd(id, userId).then((ad) => {
     if (ad) {
       res.send(ad);
     } else {
@@ -125,9 +136,15 @@ function create(req, res) {
     .catch(() => res.sendStatus(500));
 }
 
-function getAllAds() {
+function getAllAds(userId) {
+  const escapedUserId = connection.escape(userId);
+  const gettingAdQuery = userId
+    ? ('SELECT DISTINCT ads.*, wish_ads.user_id AS is_wishing FROM ads'
+       + ` LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id;`)
+    : 'SELECT * FROM ads;';
+
   return new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM ads', (err, result) => {
+    connection.query(gettingAdQuery, (err, result) => {
       if (err) {
         reject(err);
       }
@@ -152,7 +169,9 @@ function getAllAds() {
 }
 
 function readAll(req, res) {
-  getAllAds().then(result => res.send(result)).catch(() => res.sendStatus(500));
+  const userId = req.user ? req.user.id : null;
+
+  getAllAds(userId).then(result => res.send(result)).catch(() => res.sendStatus(500));
 }
 
 module.exports = {

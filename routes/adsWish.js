@@ -6,7 +6,7 @@ connection.connect();
 
 function createAdWish(adId, userId) {
   return new Promise((resolve, reject) => {
-    connection.query(`INSERT INTO wish_ads (ad_id, user_id) VALUES (${adId}, ${userId})`, (err) => {
+    connection.query('INSERT INTO wish_ads (ad_id, user_id) VALUES (?, ?)', [adId, userId], (err) => {
       if (err) {
         reject();
         return;
@@ -19,13 +19,14 @@ function createAdWish(adId, userId) {
 function create(req, res) {
   const adId = req.params.ad_id;
   const userId = req.user.id;
+
   createAdWish(adId, userId).then(() => res.sendStatus(201))
     .catch(() => res.sendStatus(500));
 }
 
 function deleteAdWish(adId, userId) {
   return new Promise((resolve, reject) => {
-    connection.query(`DELETE FROM wish_ads WHERE ad_id = ${adId} AND user_id = ${userId}`, (err) => {
+    connection.query('DELETE FROM wish_ads WHERE ad_id = ? AND user_id = ?', [adId, userId], (err) => {
       if (err) {
         reject();
         return;

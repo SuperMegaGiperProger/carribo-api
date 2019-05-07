@@ -21,7 +21,7 @@ module.exports.create = (req, res) => {
         jwtConfig.secret,
         { expiresIn: '180d' });
       res.cookie('token', token, { httpOnly: true });
-      res.json(token);
+      res.json(user);
     } else {
       res.status(403).send('Invalid username or password');
     }
