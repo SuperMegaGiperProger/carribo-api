@@ -4,11 +4,11 @@ const graphqlHTTP = require('express-graphql');
 const { GraphQLSchema } = require('graphql');
 const router = require('../routes');
 
-const { queryType } = require('./query.js');
+const { adsType, adMutations } = require('./query.js');
 
 const { errorTypes } = require('./errors');
 
-const schema = new GraphQLSchema({ query: queryType });
+const schema = new GraphQLSchema({ query: adsType, mutation: adMutations });
 
 module.exports = (app) => {
   app.use('/v2/graphql', graphqlHTTP({

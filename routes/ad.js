@@ -13,6 +13,7 @@ function calculateFinalCost(ad) {
       and source_country_name = (${countryName})`, (err, result) => {
       if (err) {
         reject(err);
+        return;
       }
       const payload = result[0] ? result[0].formula : '';
       resolve(payload);
@@ -25,32 +26,45 @@ function getAdPhotos(ad) {
     connection.query(`SELECT photo_id FROM ad_photos WHERE ad_id = '${ad.id}'`, (err, result) => {
       if (err) {
         reject(err);
+        return;
       }
       resolve(result.map(photo => photo.photo_id));
     });
   });
 }
 
-module.exports.read = (req, res) => {
-  const { id } = req.params;
-  connection.query(`SELECT * FROM ads WHERE ads.id = ${id}`, (err, result) => {
-    if (err) {
-      res.sendStatus(500);
-      return;
-    }
-    if (!result.length) {
-      res.sendStatus(404);
-      return;
-    }
+function getAd(id) {
+  return new Promise((resolve, reject) => {
+    connection.query(`SELECT * FROM ads WHERE ads.id = ${id}`, (err, result) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      if (!result.length) {
+        resolve(null);
+      }
 
-    calculateFinalCost(result[0]).then((finalCost) => {
-      result[0].final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', result[0].cost))) : result[0].cost;
-      res.send(result[0]);
-    }).catch(() => res.sendStatus(500));
+      calculateFinalCost(result[0]).then((finalCost) => {
+        // eslint-disable-next-line no-param-reassign
+        result[0].final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', result[0].cost))) : result[0].cost;
+        resolve(result[0]);
+      }).catch(() => reject());
+    });
   });
-};
+}
 
-module.exports.delete = (req, res) => {
+function read(req, res) {
+  const { id } = req.params;
+  getAd(id).then((ad) => {
+    if (ad) {
+      res.send(ad);
+    } else {
+      res.sendStatus(404);
+    }
+  }).catch(() => res.sendStatus(500));
+}
+
+function destroy(req, res) {
   const { id } = req.params;
   connection.query(`SELECT author_id FROM ads WHERE id = ${id}`, (err, result) => {
     if (err) {
@@ -58,7 +72,7 @@ module.exports.delete = (req, res) => {
       return;
     }
     if (result[0].author_id === req.user.id) {
-      connection.query(`DELETE FROM ads WHERE ads.id = ${id}`, (error, result) => {
+      connection.query(`DELETE FROM ads WHERE ads.id = ${id}`, (error) => {
         if (error) {
           res.sendStatus(500);
           return;
@@ -69,9 +83,9 @@ module.exports.delete = (req, res) => {
       res.sendStatus(403);
     }
   });
-};
+}
 
-module.exports.update = (req, res) => {
+function update(req, res) {
   const { id } = req.params;
   connection.query(`SELECT author_id FROM ads WHERE id = ${id}`, (err, result) => {
     if (err) {
@@ -88,22 +102,28 @@ module.exports.update = (req, res) => {
       res.sendStatus(403);
     }
   });
-};
+}
 
-module.exports.create = (req, res) => {
-  const newAd = req.body;
-  connection.query(`INSERT INTO ads (cost, description, header, engine_capacity,
-        power, engine_type, year_of_production, brand, model, mileage, location_id) VALUES (${newAd.cost}, '${newAd.description}',
-        '${newAd.header}', ${newAd.engine_capacity}, ${newAd.power}, '${newAd.engine_type}', ${newAd.year_of_production},
-        '${newAd.brand}', '${newAd.model}', ${newAd.mileage}, 10)`, (err, result) => {
-    if (err) {
-      res.sendStatus(500);
-      return;
-    }
-    const createdAd = result;
-    res.status(201).json(createdAd);
+function createAd(newAd) {
+  return new Promise((resolve, reject) => {
+    connection.query(`INSERT INTO ads (cost, description, header, engine_capacity,
+      power, engine_type, year_of_production, brand, model, mileage, location_id) VALUES (${newAd.cost}, '${newAd.description}',
+      '${newAd.header}', ${newAd.engine_capacity}, ${newAd.power}, '${newAd.engine_type}', ${newAd.year_of_production},
+      '${newAd.brand}', '${newAd.model}', ${newAd.mileage}, 10)`, (err, result) => {
+      if (err) {
+        reject();
+        return;
+      }
+      resolve({ id: result.insertId });
+    });
   });
-};
+}
+
+function create(req, res) {
+  const newAd = req.body;
+  createAd(newAd).then(ad => res.status(201).json(ad.id))
+    .catch(() => res.sendStatus(500));
+}
 
 function getAllAds() {
   return new Promise((resolve, reject) => {
@@ -119,11 +139,11 @@ function getAllAds() {
         promises.push(calculateFinalCost(ad).then((finalCost) => {
           // eslint-disable-next-line no-param-reassign
           ad.final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : null;
-        }));
+        }).catch(() => reject()));
         promises.push(getAdPhotos(ad).then((photoIds) => {
           // eslint-disable-next-line no-param-reassign
           ad.photo_ids = photoIds;
-        }));
+        }).catch(() => reject()));
       });
 
       Promise.all(promises).then(() => resolve(result));
@@ -131,8 +151,17 @@ function getAllAds() {
   });
 }
 
-module.exports.readAll = (req, res) => {
+function readAll(req, res) {
   getAllAds().then(result => res.send(result)).catch(() => res.sendStatus(500));
-};
+}
 
-module.exports.getAllAds = getAllAds;
+module.exports = {
+  getAllAds,
+  getAd,
+  createAd,
+  read,
+  destroy,
+  update,
+  create,
+  readAll,
+};
