@@ -1,6 +1,7 @@
 const userSession = require('./userSession');
 const ad = require('./ad');
 const photo = require('./photo');
+const adsWish = require('./adsWish');
 
 const checkToken = require('../middleware/checkToken');
 
@@ -12,4 +13,6 @@ module.exports = (app) => {
   app.post('/v1/ads', ad.create);
   app.get('/v1/ads', ad.readAll);
   app.get('/v1/ads/:ad_id/photos/:photo_id', photo.read);
+  app.post('/v1/ads_wish/:ad_id', checkToken, adsWish.create);
+  app.delete('/v1/ads_wish/:ad_id', checkToken, adsWish.destroy);
 };
