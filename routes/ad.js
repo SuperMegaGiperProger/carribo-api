@@ -1,5 +1,6 @@
 const mysql = require('mysql');
 const dbConfig = require('../config/db');
+const searchOperations = require('../constants/searchOperations');
 
 const connection = mysql.createConnection(dbConfig);
 connection.connect();
@@ -17,18 +18,6 @@ function calculateFinalCost(ad) {
       }
       const payload = result[0] ? result[0].formula : '';
       resolve(payload);
-    });
-  });
-}
-
-function getAdPhotos(ad) {
-  return new Promise((resolve, reject) => {
-    connection.query(`SELECT photo_id FROM ad_photos WHERE ad_id = '${ad.id}'`, (err, result) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(result.map(photo => photo.photo_id));
     });
   });
 }
@@ -138,7 +127,52 @@ function create(req, res) {
     .catch(() => res.sendStatus(500));
 }
 
-function getAllAds(userId, perPage = 25, page = 0) {
+function toSearchQuery(searchParamsObject) {
+  const params = Object.keys(searchParamsObject);
+  let query = '';
+
+  const getConditionQuery = (param, condition) => {
+    const operation = searchOperations[condition[0]];
+    let value;
+    switch (operation) {
+      case 'IN': {
+        value = '(';
+        const { length } = condition[1];
+        condition[1].forEach((element, i) => {
+          value = i + 1 === length ? value.concat(`'${element}')`) : value.concat(`'${element}', `);
+        });
+        break;
+      }
+
+      case 'LIKE':
+        value = `'%${condition[1]}%'`;
+        break;
+
+      default:
+        value = +condition[1] ? +condition[1] : `'${condition[1]}'`;
+        break;
+    }
+
+    return `${param} ${operation} ${value}`;
+  };
+
+  const paramsNumber = params.length;
+
+  params.forEach((param, index) => {
+    const operations = searchParamsObject[param];
+    const conditions = Object.entries(operations);
+    const conditionsNumber = conditions.length;
+
+    conditions.forEach((condition, i) => {
+      const queryOperation = index + 1 === paramsNumber && i + 1 === conditionsNumber ? '' : 'AND ';
+      const conditionQuery = getConditionQuery(param, condition);
+      query = query.concat(`${conditionQuery} ${queryOperation}`);
+    });
+  });
+  return query;
+}
+
+function getAllAds(userId, perPage = 25, page = 0, searchQuery = '') {
   const escapedUserId = connection.escape(userId);
   const escapedPerPage = connection.escape(perPage);
   const escapedPage = connection.escape(page);
@@ -149,11 +183,13 @@ function getAllAds(userId, perPage = 25, page = 0) {
         LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id
         LEFT JOIN locations ON locations.id = ads.location_id
         LEFT JOIN ad_photos ON ad_photos.ad_id = ads.id
+        ${searchQuery}
         GROUP BY ads.id
         LIMIT ${escapedPerPage} OFFSET ${escapedPage};`)
     : `SELECT ads.*, locations.address, locations.country_name, GROUP_CONCAT(ad_photos.photo_id) AS photo_ids FROM ads LEFT JOIN locations
       ON locations.id = ads.location_id
       LEFT JOIN ad_photos ON ad_photos.ad_id = ads.id
+      ${searchQuery}
       GROUP BY ads.id
       LIMIT ${escapedPerPage} OFFSET ${offset};`;
 
@@ -189,8 +225,10 @@ function readAll(req, res) {
   let { per_page: perPage, page } = req.query;
   perPage = perPage ? +perPage : undefined;
   page = page ? +page : undefined;
+  const searchParams = req.query.q;
+  const searchQuery = searchParams ? 'WHERE '.concat(toSearchQuery(searchParams)) : undefined;
 
-  getAllAds(userId, perPage, page).then(result => res.send(result))
+  getAllAds(userId, perPage, page, searchQuery).then(result => res.send(result))
     .catch(() => res.sendStatus(500));
 }
 
