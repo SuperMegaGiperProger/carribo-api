@@ -144,11 +144,18 @@ function getAllAds(userId, perPage = 25, page = 0) {
   const escapedPage = connection.escape(page);
   const offset = escapedPerPage * escapedPage;
   const gettingAdQuery = userId
-    ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name, wish_ads.user_id AS is_wishing FROM ads
+    ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name, wish_ads.user_id AS is_wishing,
+        GROUP_CONCAT(ad_photos.photo_id) AS photo_ids FROM ads
         LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id
-        LEFT JOIN locations ON locations.id = ads.location_id LIMIT ${escapedPerPage} OFFSET ${escapedPage};`)
-    : `SELECT ads.*, locations.address, locations.country_name FROM ads LEFT JOIN locations
-      ON locations.id = ads.location_id LIMIT ${escapedPerPage} OFFSET ${offset};`;
+        LEFT JOIN locations ON locations.id = ads.location_id
+        LEFT JOIN ad_photos ON ad_photos.ad_id = ads.id
+        GROUP BY ads.id
+        LIMIT ${escapedPerPage} OFFSET ${escapedPage};`)
+    : `SELECT ads.*, locations.address, locations.country_name, GROUP_CONCAT(ad_photos.photo_id) AS photo_ids FROM ads LEFT JOIN locations
+      ON locations.id = ads.location_id
+      LEFT JOIN ad_photos ON ad_photos.ad_id = ads.id
+      GROUP BY ads.id
+      LIMIT ${escapedPerPage} OFFSET ${offset};`;
 
   return new Promise((resolve, reject) => {
     connection.query(gettingAdQuery, (err, result) => {
@@ -165,10 +172,11 @@ function getAllAds(userId, perPage = 25, page = 0) {
           // eslint-disable-next-line no-param-reassign
           ad.final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : null;
         }).catch(() => reject()));
-        promises.push(getAdPhotos(ad).then((photoIds) => {
+
+        if (ad.photo_ids) {
           // eslint-disable-next-line no-param-reassign
-          ad.photo_ids = photoIds;
-        }).catch(() => reject()));
+          ad.photo_ids = ad.photo_ids.split(',').map(id => +id);
+        }
       });
 
       Promise.all(promises).then(() => resolve(result));
