@@ -140,8 +140,8 @@ function create(req, res) {
 
 function getAllAds(userId, perPage = 25, page = 0) {
   const escapedUserId = connection.escape(userId);
-  const escapedPerPage = connection.escape(+perPage);
-  const escapedPage = connection.escape(+page);
+  const escapedPerPage = connection.escape(perPage);
+  const escapedPage = connection.escape(page);
   const offset = escapedPerPage * escapedPage;
   const gettingAdQuery = userId
     ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name, wish_ads.user_id AS is_wishing FROM ads
@@ -180,7 +180,7 @@ function readAll(req, res) {
   const userId = req.user ? req.user.id : null;
   const { per_page: perPage, page } = req.query;
 
-  getAllAds(userId, perPage, page).then(result => res.send(result))
+  getAllAds(userId, +perPage, +page).then(result => res.send(result))
     .catch(() => res.sendStatus(500));
 }
 
