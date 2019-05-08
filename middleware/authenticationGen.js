@@ -33,6 +33,7 @@ const authenticationGen = toValidate => (req, res, next) => {
     });
   } else {
     errorHandler();
+    next();
   }
 };
 
