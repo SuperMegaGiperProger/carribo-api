@@ -15,8 +15,8 @@ const authenticationGen = toValidate => (req, res, next) => {
     }
   };
 
-  if (req.cookies && req.cookies.token) {
-    const { token } = req.cookies;
+  if (req.headers.authorization) {
+    const token = req.headers.authorization;
 
     jwt.verify(token, jwtConfig.secret, (err, user) => {
       if (err) {
