@@ -38,10 +38,12 @@ function getAd(adId, userId) {
   const escapedAdId = connection.escape(adId);
 
   const gettingAdQuery = userId
-    ? ('SELECT DISTINCT ads.*, wish_ads.user_id AS is_wishing FROM ads'
-       + ` LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id`
-       + ` WHERE ads.id = ${escapedAdId};`)
-    : `SELECT * FROM ads WHERE ads.id = ${escapedAdId};`;
+    ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name, wish_ads.user_id AS is_wishing FROM ads
+       LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id
+       LEFT JOIN locations ON locations.id = ads.location_id
+       WHERE ads.id = ${escapedAdId};`)
+    : `SELECT ads.*, locations.address, locations.country_name FROM ads
+    LEFT JOIN locations ON locations.id = ads.location_id WHERE ads.id = ${escapedAdId};`;
 
   return new Promise((resolve, reject) => {
     connection.query(gettingAdQuery, (err, result) => {
@@ -139,14 +141,16 @@ function create(req, res) {
 function getAllAds(userId) {
   const escapedUserId = connection.escape(userId);
   const gettingAdQuery = userId
-    ? ('SELECT DISTINCT ads.*, wish_ads.user_id AS is_wishing FROM ads'
-       + ` LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id;`)
-    : 'SELECT * FROM ads;';
+    ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name, wish_ads.user_id AS is_wishing FROM ads
+        LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id
+        LEFT JOIN locations ON locations.id = ads.location_id;`)
+    : 'SELECT ads.*, locations.address, locations.country_name FROM ads LEFT JOIN locations ON locations.id = ads.location_id;';
 
   return new Promise((resolve, reject) => {
     connection.query(gettingAdQuery, (err, result) => {
       if (err) {
         reject(err);
+        return;
       }
 
       const ads = result;

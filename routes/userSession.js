@@ -16,6 +16,7 @@ module.exports.create = (req, res) => {
     }
 
     const user = result[0];
+
     if (user && username === user.username && password === user.password) {
       const token = jwt.sign({ username, password },
         jwtConfig.secret,
