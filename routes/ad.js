@@ -5,32 +5,18 @@ const searchOperations = require('../constants/searchOperations');
 const connection = mysql.createConnection(dbConfig);
 connection.connect();
 
-const destinationCountry = 'Belarus';
-
-function calculateFinalCost(ad) {
-  return new Promise((resolve, reject) => {
-    const countryName = `SELECT country_name FROM locations WHERE id = ${ad.location_id}`;
-    connection.query(`SELECT formula FROM cost_dependencies WHERE destination_country_name = '${destinationCountry}'
-      and source_country_name = (${countryName})`, (err, result) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      const payload = result[0] ? result[0].formula : '';
-      resolve(payload);
-    });
-  });
-}
-
 function getAd(adId, userId) {
   const escapedUserId = connection.escape(userId);
   const escapedAdId = connection.escape(adId);
 
   const gettingAdQuery = userId
-    ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name, wish_ads.user_id AS is_wishing FROM ads
-       LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id
-       LEFT JOIN locations ON locations.id = ads.location_id
-       WHERE ads.id = ${escapedAdId};`)
+    ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name, 
+      cost_dependencies.formula, wish_ads.user_id AS is_wishing FROM ads
+      LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id
+      LEFT JOIN locations ON locations.id = ads.location_id
+      LEFT JOIN cost_dependencies ON cost_dependencies.source_country_name = locations.country_name
+      AND cost_dependencies.destination_country_name = 'Belarus'
+      WHERE ads.id = ${escapedAdId};`)
     : `SELECT ads.*, locations.address, locations.country_name FROM ads
     LEFT JOIN locations ON locations.id = ads.location_id WHERE ads.id = ${escapedAdId};`;
 
@@ -44,11 +30,13 @@ function getAd(adId, userId) {
         resolve(null);
       }
 
-      calculateFinalCost(result[0]).then((finalCost) => {
-        // eslint-disable-next-line no-param-reassign
-        result[0].final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', result[0].cost))) : null;
-        resolve(result[0]);
-      }).catch(() => reject());
+      const ad = result[0];
+      if (userId && ad.formula) {
+        const finalCost = Math.round(eval(ad.formula.replace('{cost}', ad.cost)));
+        ad.final_cost = finalCost || null;
+      }
+
+      resolve(ad);
     });
   });
 }
@@ -172,17 +160,21 @@ function toSearchQuery(searchParamsObject) {
   return query;
 }
 
-function getAllAds(userId, perPage = 25, page = 0, searchQuery = '') {
+function getAllAds(userId, perPage = 25, page = 0, searchQuery = '', destinationCountry = '') {
   const escapedUserId = connection.escape(userId);
   const escapedPerPage = connection.escape(perPage);
   const escapedPage = connection.escape(page);
+  const escapedDestCountry = connection.escape(destinationCountry);
   const offset = escapedPerPage * escapedPage;
   const gettingAdQuery = userId
-    ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name, wish_ads.user_id AS is_wishing,
+    ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name,
+        wish_ads.user_id AS is_wishing, cost_dependencies.formula,
         GROUP_CONCAT(ad_photos.photo_id) AS photo_ids FROM ads
         LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id
         LEFT JOIN locations ON locations.id = ads.location_id
         LEFT JOIN ad_photos ON ad_photos.ad_id = ads.id
+        LEFT JOIN cost_dependencies ON cost_dependencies.source_country_name = locations.country_name
+        AND cost_dependencies.destination_country_name = ${escapedDestCountry}
         ${searchQuery}
         GROUP BY ads.id
         LIMIT ${escapedPerPage} OFFSET ${escapedPage};`)
@@ -201,13 +193,13 @@ function getAllAds(userId, perPage = 25, page = 0, searchQuery = '') {
       }
 
       const ads = result;
-      const promises = [];
 
       ads.forEach((ad) => {
-        promises.push(calculateFinalCost(ad).then((finalCost) => {
+        if (userId && ad.formula) {
+          const finalCost = Math.round(eval(ad.formula.replace('{cost}', ad.cost)));
           // eslint-disable-next-line no-param-reassign
-          ad.final_cost = finalCost ? Math.round(eval(finalCost.replace('{cost}', ad.cost))) : null;
-        }).catch(() => reject()));
+          ad.final_cost = finalCost || null;
+        }
 
         if (ad.photo_ids) {
           // eslint-disable-next-line no-param-reassign
@@ -215,7 +207,7 @@ function getAllAds(userId, perPage = 25, page = 0, searchQuery = '') {
         }
       });
 
-      Promise.all(promises).then(() => resolve(result));
+      resolve(result);
     });
   });
 }
@@ -226,9 +218,10 @@ function readAll(req, res) {
   perPage = perPage ? +perPage : undefined;
   page = page ? +page : undefined;
   const searchParams = req.query.q;
+  const destinationCountry = req.query.country;
   const searchQuery = searchParams ? 'WHERE '.concat(toSearchQuery(searchParams)) : undefined;
 
-  getAllAds(userId, perPage, page, searchQuery).then(result => res.send(result))
+  getAllAds(userId, perPage, page, searchQuery, destinationCountry).then(result => res.send(result))
     .catch(() => res.sendStatus(500));
 }
 
