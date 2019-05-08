@@ -138,13 +138,17 @@ function create(req, res) {
     .catch(() => res.sendStatus(500));
 }
 
-function getAllAds(userId) {
+function getAllAds(userId, perPage = 25, page = 0) {
   const escapedUserId = connection.escape(userId);
+  const escapedPerPage = connection.escape(perPage);
+  const escapedPage = connection.escape(page);
+  const offset = escapedPerPage * escapedPage;
   const gettingAdQuery = userId
     ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name, wish_ads.user_id AS is_wishing FROM ads
         LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id
-        LEFT JOIN locations ON locations.id = ads.location_id;`)
-    : 'SELECT ads.*, locations.address, locations.country_name FROM ads LEFT JOIN locations ON locations.id = ads.location_id;';
+        LEFT JOIN locations ON locations.id = ads.location_id LIMIT ${escapedPerPage} OFFSET ${escapedPage};`)
+    : `SELECT ads.*, locations.address, locations.country_name FROM ads LEFT JOIN locations
+      ON locations.id = ads.location_id LIMIT ${escapedPerPage} OFFSET ${offset};`;
 
   return new Promise((resolve, reject) => {
     connection.query(gettingAdQuery, (err, result) => {
@@ -174,8 +178,10 @@ function getAllAds(userId) {
 
 function readAll(req, res) {
   const userId = req.user ? req.user.id : null;
+  const { per_page: perPage, page } = req.query;
 
-  getAllAds(userId).then(result => res.send(result)).catch(() => res.sendStatus(500));
+  getAllAds(userId, +perPage, +page).then(result => res.send(result))
+    .catch(() => res.sendStatus(500));
 }
 
 module.exports = {
