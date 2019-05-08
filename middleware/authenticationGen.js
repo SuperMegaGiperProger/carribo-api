@@ -28,6 +28,7 @@ const authenticationGen = toValidate => (req, res, next) => {
           }
           if (result[0]) {
             req.user = result[0];
+            console.log(`Authorized request: ${JSON.stringify(req.user)}`);
             next();
           }
         });
