@@ -178,9 +178,11 @@ function getAllAds(userId, perPage = 25, page = 0) {
 
 function readAll(req, res) {
   const userId = req.user ? req.user.id : null;
-  const { per_page: perPage, page } = req.query;
+  let { per_page: perPage, page } = req.query;
+  perPage = perPage ? +perPage : undefined;
+  page = page ? +page : undefined;
 
-  getAllAds(userId, +perPage, +page).then(result => res.send(result))
+  getAllAds(userId, perPage, page).then(result => res.send(result))
     .catch(() => res.sendStatus(500));
 }
 
