@@ -10,6 +10,8 @@ const authenticationGen = toValidate => (req, res, next) => {
   const errorHandler = () => {
     if (toValidate) {
       res.sendStatus(403);
+    } else {
+      next();
     }
   };
 
@@ -26,6 +28,7 @@ const authenticationGen = toValidate => (req, res, next) => {
           }
           if (result[0]) {
             req.user = result[0];
+            console.log(`Authorized request: ${JSON.stringify(req.user)}`);
             next();
           }
         });
@@ -33,7 +36,6 @@ const authenticationGen = toValidate => (req, res, next) => {
     });
   } else {
     errorHandler();
-    next();
   }
 };
 
