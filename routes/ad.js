@@ -61,6 +61,11 @@ function destroy(req, res) {
       res.sendStatus(500);
       return;
     }
+    if (!result[0]) {
+      res.sendStatus(404);
+      return;
+    }
+
     if (result[0].author_id === req.user.id) {
       connection.query(`DELETE FROM ads WHERE ads.id = ${id}`, (error) => {
         if (error) {
