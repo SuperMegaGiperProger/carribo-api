@@ -61,6 +61,11 @@ function destroy(req, res) {
       res.sendStatus(500);
       return;
     }
+    if (!result[0]) {
+      res.sendStatus(404);
+      return;
+    }
+
     if (result[0].author_id === req.user.id) {
       connection.query(`DELETE FROM ads WHERE ads.id = ${id}`, (error) => {
         if (error) {
@@ -174,16 +179,23 @@ function getAllAds(userId, perPage = 25, page = 0, searchQuery = '', destination
         LEFT JOIN locations ON locations.id = ads.location_id
         LEFT JOIN ad_photos ON ad_photos.ad_id = ads.id
         LEFT JOIN cost_dependencies ON cost_dependencies.source_country_name = locations.country_name
-        AND cost_dependencies.destination_country_name = ${escapedDestCountry}
+          AND cost_dependencies.destination_country_name = ${escapedDestCountry}
         ${searchQuery}
         GROUP BY ads.id
         LIMIT ${escapedPerPage} OFFSET ${escapedPage};`)
-    : `SELECT ads.*, locations.address, locations.country_name, GROUP_CONCAT(ad_photos.photo_id) AS photo_ids FROM ads LEFT JOIN locations
-      ON locations.id = ads.location_id
-      LEFT JOIN ad_photos ON ad_photos.ad_id = ads.id
-      ${searchQuery}
-      GROUP BY ads.id
-      LIMIT ${escapedPerPage} OFFSET ${offset};`;
+    : `SELECT
+         ads.*,
+         locations.address, locations.country_name,
+         GROUP_CONCAT(ad_photos.photo_id) AS photo_ids,
+         cost_dependencies.formula
+       FROM ads
+       LEFT JOIN locations ON locations.id = ads.location_id
+       LEFT JOIN ad_photos ON ad_photos.ad_id = ads.id
+       LEFT JOIN cost_dependencies ON cost_dependencies.source_country_name = locations.country_name
+         AND cost_dependencies.destination_country_name = ${escapedDestCountry}
+       ${searchQuery}
+       GROUP BY ads.id
+       LIMIT ${escapedPerPage} OFFSET ${offset};`;
 
   return new Promise((resolve, reject) => {
     connection.query(gettingAdQuery, (err, result) => {
@@ -195,7 +207,7 @@ function getAllAds(userId, perPage = 25, page = 0, searchQuery = '', destination
       const ads = result;
 
       ads.forEach((ad) => {
-        if (userId && ad.formula) {
+        if (ad.formula) {
           const finalCost = Math.round(eval(ad.formula.replace('{cost}', ad.cost)));
           // eslint-disable-next-line no-param-reassign
           ad.final_cost = finalCost || null;
