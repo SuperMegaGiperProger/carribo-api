@@ -3,12 +3,14 @@ const ad = require('./ad');
 const photo = require('./photo');
 const adsWish = require('./adsWish');
 const user = require('./user');
+const country = require('./country');
 
 const authenticationGen = require('../middleware/authenticationGen');
 
 module.exports = (app) => {
   app.post('/v1/user_session', userSession.create);
   app.post('/v1/users', user.create);
+  app.get('/v1/countries', country.readAll);
   app.get('/v1/ads/:id', authenticationGen(false), ad.read);
   app.delete('/v1/ads/:id', authenticationGen(true), ad.destroy);
   app.put('/v1/ads/:id', authenticationGen(true), ad.update);
