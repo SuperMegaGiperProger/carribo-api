@@ -9,10 +9,8 @@ connection.connect();
 
 module.exports.create = (req, res) => {
   const { username, password } = req.body;
-  const escapedUsername = connection.escape(username);
-  const escapedPassword = connection.escape(password);
 
-  connection.query(`SELECT * FROM users WHERE username=${escapedUsername}`, (err, result) => {
+  connection.query('SELECT * FROM users WHERE username = ?', [username], (err, result) => {
     if (err) {
       res.sendStatus(500);
       return;
@@ -20,8 +18,8 @@ module.exports.create = (req, res) => {
 
     const user = result[0];
 
-    if (user && username === user.username && bcrypt.compareSync(escapedPassword, user.password)) {
-      const token = jwt.sign({ username, password },
+    if (user && username === user.username && bcrypt.compareSync(password, user.password)) {
+      const token = jwt.sign({ username: user.username, password: user.password },
         jwtConfig.secret,
         { expiresIn: '180d' });
 
