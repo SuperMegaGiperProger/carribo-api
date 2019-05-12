@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const mysql = require('mysql');
-const jwtConfig = require('../config/jwt');
-const dbConfig = require('../config/db');
+const jwtConfig = require('@config/jwt');
+const dbConfig = require('@config/db');
 
 const connection = mysql.createConnection(dbConfig);
 connection.connect();

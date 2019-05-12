@@ -1,6 +1,6 @@
 const mysql = require('mysql');
 const bcrypt = require('bcrypt');
-const dbConfig = require('../config/db');
+const dbConfig = require('@config/db');
 
 const saltRounds = 10;
 

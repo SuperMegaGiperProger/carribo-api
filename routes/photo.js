@@ -1,6 +1,6 @@
 const mysql = require('mysql');
 const path = require('path');
-const dbConfig = require('../config/db');
+const dbConfig = require('@config/db');
 
 const connection = mysql.createConnection(dbConfig);
 connection.connect();

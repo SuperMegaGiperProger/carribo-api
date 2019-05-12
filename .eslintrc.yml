@@ -10,3 +10,4 @@ parserOptions:
   ecmaVersion: 2018
 rules:
   import/no-unresolved: off
+  key-spacing: off

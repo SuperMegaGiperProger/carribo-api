@@ -9,6 +9,7 @@
     "cookie-parser": "^1.4.4",
     "express": "^4.16.4",
     "jsonwebtoken": "^8.5.1",
+    "module-alias": "^2.2.0",
     "morgan": "^1.9.1",
     "mysql": "^2.16.0"
   },
@@ -22,5 +23,14 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Julia Margun",
-  "license": "ISC"
+  "license": "ISC",
+  "_moduleAliases": {
+    "@root": ".",
+    "@config": "config",
+    "@constants": "constants",
+    "@middleware": "middleware",
+    "@models": "models",
+    "@public": "public",
+    "@routes": "routes"
+  }
 }

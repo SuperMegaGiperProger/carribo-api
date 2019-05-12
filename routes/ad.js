@@ -1,6 +1,6 @@
 const mysql = require('mysql');
-const dbConfig = require('../config/db');
-const searchOperations = require('../constants/searchOperations');
+const dbConfig = require('@config/db');
+const searchOperations = require('@constants/searchOperations');
 
 const connection = mysql.createConnection(dbConfig);
 connection.connect();
@@ -233,8 +233,12 @@ function readAll(req, res) {
   const destinationCountry = req.query.country;
   const searchQuery = searchParams ? 'WHERE '.concat(toSearchQuery(searchParams)) : undefined;
 
-  getAllAds(userId, perPage, page, searchQuery, destinationCountry).then(result => res.send(result))
-    .catch(() => res.sendStatus(500));
+  getAllAds(userId, perPage, page, searchQuery, destinationCountry)
+    .then(result => res.send(result))
+    .catch((err) => {
+      console.log(err);
+      res.sendStatus(500);
+    });
 }
 
 module.exports = {

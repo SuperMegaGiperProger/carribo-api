@@ -5,7 +5,7 @@ const adsWish = require('./adsWish');
 const user = require('./user');
 const country = require('./country');
 
-const authenticationGen = require('../middleware/authenticationGen');
+const authenticationGen = require('@middleware/authenticationGen');
 
 module.exports = (app) => {
   app.post('/v1/user_session', userSession.create);
