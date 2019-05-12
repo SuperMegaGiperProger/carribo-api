@@ -173,7 +173,7 @@ function getAllAds(userId, perPage = 25, page = 0, searchQuery = '', destination
   const offset = escapedPerPage * escapedPage;
   const gettingAdQuery = userId
     ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name,
-        wish_ads.user_id AS is_wishing, cost_dependencies.formula,
+        wish_ads.user_id IS NOT NULL AS is_wishing, cost_dependencies.formula,
         GROUP_CONCAT(ad_photos.photo_id) AS photo_ids FROM ads
         LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id
         LEFT JOIN locations ON locations.id = ads.location_id
