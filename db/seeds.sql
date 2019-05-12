@@ -15,19 +15,35 @@ VALUES
   ('Germany'   , 'DE');
 
 
-INSERT INTO `cost_dependencies`
-  (`destination_country_name` , `source_country_name` , `formula`)
+INSERT INTO `formula_values`
+  (`id` , `value`  , `description`)
 VALUES
-  ('Belarus'                  , 'Ukraine'             , '{cost}*1.1+52')     ,
-  ('Ukraine'                  , 'Belarus'             , '{cost}*1.2+100+87') ,
-  ('Russia'                   , 'Belarus'             , '{cost}*1.3+54+8')   ,
-  ('Belarus'                  , 'Russia'              , '{cost}+78+89')      ,
-  ('Belarus'                  , 'Lithuania'           , '{cost}*1.1+88+45')  ,
-  ('Lithuania'                , 'Latvia'              , '{cost}')            ,
-  ('Latvia'                   , 'Estonia'             , '{cost}')            ,
-  ('Lithuania'                , 'Poland'              , '{cost}')            ,
-  ('Ukraine'                  , 'Russia'              , '{cost}*1.4+50')     ,
-  ('Russia'                   , 'Ukraine'             , '{cost}+55')         ;
+  (1    , '{cost}' , 'Cost')             ,
+  (2    , '235'    , 'Recycling duty')   ,
+  (3    , '352'    , 'Recycling duty')   ,
+  (4    , '35'     , 'Car registration') ,
+  (5    , '350'    , 'Car delivery');
+
+
+INSERT INTO `formula_mutations`
+  (`type` , `first_value_id` , `second_value_id` , `condition`)
+VALUES
+  ('sum'  , 1                , 2                 , '{age} <= 3') ,
+  ('sum'  , 1                , 3                 , '{age} > 3')  ,
+  ('sum'  , 1                , 4                 , NULL)         ,
+  ('sum'  , 1                , 5                 , NULL)         ;
+
+
+INSERT INTO `formulas`
+  (`id` , `value_id` , `country`)
+VALUES
+  (1    , 1          , 'Belarus');
+
+
+INSERT INTO `formula_sources`
+  (`formula_id` , `country`)
+VALUES
+  (1            , 'Russia');
 
 
 INSERT INTO `locations`
@@ -36,13 +52,43 @@ VALUES
   ('Minsk, Lenina 55'                    , 'Belarus')   ,
   ('Gomel, Pobedy 14'                    , 'Belarus')   ,
   ('Mogilev'                             , 'Belarus')   ,
-  ('Brest, Internacionalnaj 1'           , 'Belarus')   ,
-  ('Ivacevichi, per. 40 let Octiabra, 3' , 'Belarus')   ,
+  ('Brest'                               , 'Belarus')   ,
+  ('Ivacevichi'                          , 'Belarus')   ,
   ('Kiev, Lenina 32'                     , 'Ukraine')   ,
-  ('Moscow, Lenina 43-2'                 , 'Russia')    ,
+  ('Moscow, Lenina 43'                   , 'Russia')    ,
   ('Vilnius, Uzupis 2'                   , 'Lithuania') ,
-  ('Barcelona, Placa de Barcelona 4'     , 'Spain')     ,
-  ('Smolensk, Pobedy 10'                 , 'Russia')    ;
+  ('Barcelona'                           , 'Spain')     ,
+  ('Smolensk'                            , 'Russia')    ;
+
+
+INSERT INTO `profiles`
+  (`name`  , `location_id` , `photo_id`)
+VALUES
+  ('Pavel' , 1             , NULL ),
+  ('Julia' , 5             , NULL ),
+  ('Masha' , 7             , NULL ),
+  ('Nata'  , 9             , NULL ),
+  ('Sasha' , 2             , NULL ),
+  ('Pasha' , 3             , NULL ),
+  ('Kasha' , 4             , NULL ),
+  ('Lasha' , 6             , NULL ),
+  ('Zasha' , 8             , NULL ),
+  ('Tina'  , 10            , NULL );
+
+
+INSERT INTO `users`
+  (`id` , `username`     , `password` , `role`  , `profile_id`)
+VALUES
+  (1    , 'pavelp'       , 'sadfasdf' , 'admin' , 1 ) ,
+  (2    , 'yulka.marhun' , '1111111'  , 'admin' , 2 ) ,
+  (3    , 'sdfasdfsdaf'  , 'asdfsad'  , 'user'  , 3 ) ,
+  (4    , 'nata'         , 'sadfsa'   , 'user'  , 4 ) ,
+  (5    , 'kesha'        , 'safd'     , 'user'  , 5 ) ,
+  (6    , 'vasy'         , 'sdf'      , 'user'  , 6 ) ,
+  (7    , 'qwer'         , 'werwe'    , 'user'  , 7 ) ,
+  (8    , 'dddd'         , 'lkjlkj'   , 'user'  , 8 ) ,
+  (9    , 'werwe'        , '654654'   , 'user'  , 9 ) ,
+  (10   , 'ereer'        , 'vxfaerf'  , 'user'  , 10);
 
 
 INSERT INTO `ads`
@@ -126,64 +172,40 @@ VALUES
 
 
 INSERT INTO `photos`
-  (`id` , `path`           , `name`)
+  (`path`                  , `name`)
 VALUES
-  (NULL , '/asdfdsadf'     , 'adsfsad')      ,
-  (NULL , '/qwer'          , 'qwer')         ,
-  (NULL , '/werwe/sdfsad'  , 'werjkwlje')    ,
-  (NULL , '/werwedd'       , 'mycar.png')    ,
-  (NULL , '/pavel'         , 'kia.jpg')      ,
-  (NULL , '/ewre'          , 'for_sale.jpg') ,
-  (NULL , '/weewew'        , 'asdfsd.bmp')   ,
-  (NULL , '/myrandompath'  , '654.jpeg')     ,
-  (NULL , '/flags/albania' , 'flag.png')     ,
-  (NULL , '/rwerwe'        , 'ioujoi.vsfv')  ;
-
-
-INSERT INTO `profiles`
-  (`id` , `name`  , `location_id` , `photo_id`)
-VALUES
-  (NULL , 'Pavel' , 1             , 1 ),
-  (NULL , 'Julia' , 5             , 2 ),
-  (NULL , 'Masha' , 7             , 3 ),
-  (NULL , 'Nata'  , 9             , 4 ),
-  (NULL , 'Sasha' , 2             , 5 ),
-  (NULL , 'Pasha' , 3             , 6 ),
-  (NULL , 'Kasha' , 4             , 7 ),
-  (NULL , 'Lasha' , 6             , 8 ),
-  (NULL , 'Zasha' , 8             , 9 ),
-  (NULL , 'Tina'  , 10            , 10);
-
-
-INSERT INTO `users`
-  (`id` , `username`     , `password` , `role`  , `profile_id`)
-VALUES
-  (NULL , 'pavelp'       , 'sadfasdf' , 'admin' , 1 ),
-  (NULL , 'yulka.marhun' , '1111111'  , 'admin' , 2 ),
-  (NULL , 'sdfasdfsdaf'  , 'asdfsad'  , 'user'  , 3 ),
-  (NULL , 'nata'         , 'sadfsa'   , 'user'  , 4 ),
-  (NULL , 'kesha'        , 'safd'     , 'user'  , 5 ),
-  (NULL , 'vasy'         , 'sdf'      , 'user'  , 6 ),
-  (NULL , 'qwer'         , 'werwe'    , 'user'  , 7 ),
-  (NULL , 'dddd'         , 'lkjlkj'   , 'user'  , 8 ),
-  (NULL , 'werwe'        , '654654'   , 'user'  , 9 ),
-  (NULL , 'ereer'        , 'vxfaerf'  , 'user'  , 10);
+  ('audi-a3-1.jpg'         , 'front'),
+  ('audi-a3-2.jpg'         , 'left'),
+  ('audi-a3-3.jpg'         , 'back'),
+  ('ford-focus-1.jpg'      , 'front'),
+  ('ford-focus-2.jpg'      , 'left'),
+  ('kia-rio-2.jpg'         , 'front'),
+  ('porsche-911-1.jpg'     , 'front'),
+  ('porsche-911-2.jpg'     , 'left'),
+  ('porsche-911-3.jpg'     , 'back'),
+  ('tesla-s-1.jpg'         , 'front'),
+  ('Toyota-Camry-1.jpg'    , 'left'),
+  ('Toyota-Camry-2.jpg'    , 'front'),
+  ('volkswagen-polo-1.jpg' , 'left'),
+  ('volkswagen-polo-2.jpg' , 'front'),
+  ('volkswagen-polo-3.jpg' , 'back'),
+  ('Volvo-XC90-3.jpg'      , 'front');
 
 
 INSERT INTO `contacts`
-  (`id` , `name`   , `type`         , `value`                          , `profile_id`)
+  (`name`   , `type`         , `value`                          , `profile_id`)
 VALUES
-  (NULL , 'home'   , 'email'        , 'thrashmetalfan98@gmali.com'     , 1),
-  (NULL , 'home'   , 'email'        , 'yuliya.margun@gmail.com'        , 2),
-  (NULL , 'work'   , 'email'        , 'pavel.pershko@rubyroidlabs.com' , 1),
-  (NULL , 'home'   , 'mobile_phone' , '+346541321654'                  , 1),
-  (NULL , 'office' , 'mobile_phone' , '+46545654'                      , 1),
-  (NULL , 'office' , 'mobile_phone' , '+9871354564'                    , 2),
-  (NULL , 'velcom' , 'mobile_phone' , '+9876544445'                    , 3),
-  (NULL , 'mtc'    , 'mobile_phone' , '+786435435'                     , 4),
-  (NULL , 'life'   , 'mobile_phone' , '+846434'                        , 4),
-  (NULL , 'home'   , 'email'        , 'asdfsd@sadf.dsf'                , 5),
-  (NULL , 'work'   , 'email'        , '654654@asdf.sadf'               , 5);
+  ('home'   , 'email'        , 'thrashmetalfan98@gmali.com'     , 1),
+  ('home'   , 'email'        , 'yuliya.margun@gmail.com'        , 2),
+  ('work'   , 'email'        , 'pavel.pershko@rubyroidlabs.com' , 1),
+  ('home'   , 'mobile_phone' , '+346541321654'                  , 1),
+  ('office' , 'mobile_phone' , '+46545654'                      , 1),
+  ('office' , 'mobile_phone' , '+9871354564'                    , 2),
+  ('velcom' , 'mobile_phone' , '+9876544445'                    , 3),
+  ('mtc'    , 'mobile_phone' , '+786435435'                     , 4),
+  ('life'   , 'mobile_phone' , '+846434'                        , 4),
+  ('home'   , 'email'        , 'asdfsd@sadf.dsf'                , 5),
+  ('work'   , 'email'        , '654654@asdf.sadf'               , 5);
 
 
 INSERT INTO `ad_contacts`
@@ -261,33 +283,33 @@ VALUES
 
 
 INSERT INTO `messages`
-  (`id` , `text`          , `author_id` , `receiver_id` , `created_at`)
+  (`text`          , `author_id` , `receiver_id`)
 VALUES
-  (NULL , 'hi'            , 1           , 2             , NULL),
-  (NULL , 'hi!'           , 2           , 1             , NULL),
-  (NULL , 'how are you?'  , 1           , 2             , NULL),
-  (NULL , 'good, and you' , 2           , 1             , NULL),
-  (NULL , 'hello'         , 3           , 4             , NULL),
-  (NULL , 'hej'           , 4           , 3             , NULL),
-  (NULL , '10000'         , 3           , 4             , NULL),
-  (NULL , '12000 min'     , 4           , 3             , NULL),
-  (NULL , 'good bye'      , 3           , 4             , NULL),
-  (NULL , 'good luck'     , 4           , 3             , NULL);
+  ('hi'            , 1           , 2),
+  ('hi!'           , 2           , 1),
+  ('how are you?'  , 1           , 2),
+  ('good, and you' , 2           , 1),
+  ('hello'         , 3           , 4),
+  ('hej'           , 4           , 3),
+  ('10000'         , 3           , 4),
+  ('12000 min'     , 4           , 3),
+  ('good bye'      , 3           , 4),
+  ('good luck'     , 4           , 3);
 
 
 INSERT INTO `comments`
-  (`id` , `ad_id` , `author_id` , `body_text`  , `created_at`)
+  (`ad_id` , `author_id` , `body_text`  , `created_at`)
 VALUES
-  (NULL , 1       , 3           , 'torg?'      , NULL),
-  (NULL , 2       , 4           , '10000?'     , NULL),
-  (NULL , 3       , 5           , 'dislake'    , NULL),
-  (NULL , 4       , 6           , 'dislilke'   , NULL),
-  (NULL , 7       , 8           , 'good car'   , NULL),
-  (NULL , 8       , 9           , 'nice car'   , NULL),
-  (NULL , 10      , 3           , 'i love it!' , NULL),
-  (NULL , 9       , 4           , 'bad choise' , NULL),
-  (NULL , 6       , 8           , 'heh'        , NULL),
-  (NULL , 5       , 4           , 'lol'        , NULL);
+  (1       , 3           , 'torg?'      , NULL),
+  (2       , 4           , '10000?'     , NULL),
+  (3       , 5           , 'dislake'    , NULL),
+  (4       , 6           , 'dislilke'   , NULL),
+  (7       , 8           , 'good car'   , NULL),
+  (8       , 9           , 'nice car'   , NULL),
+  (10      , 3           , 'i love it!' , NULL),
+  (9       , 4           , 'bad choise' , NULL),
+  (6       , 8           , 'heh'        , NULL),
+  (5       , 4           , 'lol'        , NULL);
 
 
 INSERT INTO `comment_photos`

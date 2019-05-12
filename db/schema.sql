@@ -72,7 +72,6 @@ CREATE INDEX `fk_locations_countries_idx` ON `carribo`.`locations` (`country_nam
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `carribo`.`ads` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `author_id` BIGINT UNSIGNED DEFAULT NULL,
   `cost` DECIMAL(13,2) UNSIGNED NOT NULL,
   `description` TEXT NULL DEFAULT NULL,
   `header` VARCHAR(45) NOT NULL,
@@ -86,11 +85,17 @@ CREATE TABLE IF NOT EXISTS `carribo`.`ads` (
   `mileage` INT UNSIGNED NULL DEFAULT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `author_id` BIGINT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_ads_locations1`
     FOREIGN KEY (`location_id`)
     REFERENCES `carribo`.`locations` (`id`)
     ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_ads_users1`
+    FOREIGN KEY (`author_id`)
+    REFERENCES `carribo`.`users` (`id`)
+    ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
@@ -111,6 +116,8 @@ CREATE INDEX `ad_brand_idx` ON `carribo`.`ads` (`brand` ASC);
 CREATE INDEX `ad_model_idx` ON `carribo`.`ads` (`model` ASC);
 
 CREATE INDEX `ad_mileage_idx` ON `carribo`.`ads` (`mileage` ASC);
+
+CREATE INDEX `fk_ads_users1_idx` ON `carribo`.`ads` (`author_id` ASC);
 
 
 -- -----------------------------------------------------
@@ -353,31 +360,6 @@ CREATE INDEX `fk_comment_photos_comments_idx` ON `carribo`.`comment_photos` (`co
 
 
 -- -----------------------------------------------------
--- Table `carribo`.`cost_dependencies`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `carribo`.`cost_dependencies` (
-  `destination_country_name` VARCHAR(45) NOT NULL,
-  `source_country_name` VARCHAR(45) NOT NULL,
-  `formula` VARCHAR(1000) NOT NULL,
-  PRIMARY KEY (`destination_country_name`, `source_country_name`),
-  CONSTRAINT `fk_cost_dependencies_countries1`
-    FOREIGN KEY (`destination_country_name`)
-    REFERENCES `carribo`.`countries` (`name`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-  CONSTRAINT `fk_cost_dependencies_countries2`
-    FOREIGN KEY (`source_country_name`)
-    REFERENCES `carribo`.`countries` (`name`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
-CREATE INDEX `fk_cost_dependencies_countries_destination_idx` ON `carribo`.`cost_dependencies` (`destination_country_name` ASC);
-
-CREATE INDEX `fk_cost_dependencies_countries_source_idx` ON `carribo`.`cost_dependencies` (`source_country_name` ASC);
-
-
--- -----------------------------------------------------
 -- Table `carribo`.`messages`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `carribo`.`messages` (
@@ -403,7 +385,92 @@ CREATE INDEX `fk_messages_author_idx` ON `carribo`.`messages` (`author_id` ASC);
 
 CREATE INDEX `fk_messages_users_idx` ON `carribo`.`messages` (`receiver_id` ASC);
 
-DELIMITER ;
+
+-- -----------------------------------------------------
+-- Table `carribo`.`formula_values`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `carribo`.`formula_values` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `value` VARCHAR(45) NOT NULL,
+  `description` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `carribo`.`formulas`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `carribo`.`formulas` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `country` VARCHAR(45) NOT NULL,
+  `value_id` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_formulas_countries1`
+    FOREIGN KEY (`country`)
+    REFERENCES `carribo`.`countries` (`name`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_formulas_formula_values1`
+    FOREIGN KEY (`value_id`)
+    REFERENCES `carribo`.`formula_values` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+CREATE INDEX `fk_formulas_countries1_idx` ON `carribo`.`formulas` (`country` ASC);
+
+CREATE INDEX `fk_formulas_formula_values1_idx` ON `carribo`.`formulas` (`value_id` ASC);
+
+
+-- -----------------------------------------------------
+-- Table `carribo`.`formula_sources`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `carribo`.`formula_sources` (
+  `formula_id` INT UNSIGNED NOT NULL,
+  `country` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`formula_id`, `country`),
+  CONSTRAINT `fk_formula_sources_formulas1`
+    FOREIGN KEY (`formula_id`)
+    REFERENCES `carribo`.`formulas` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_formula_sources_countries1`
+    FOREIGN KEY (`country`)
+    REFERENCES `carribo`.`countries` (`name`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+CREATE INDEX `fk_formula_sources_formulas1_idx` ON `carribo`.`formula_sources` (`formula_id` ASC);
+
+CREATE INDEX `fk_formula_sources_countries1_idx` ON `carribo`.`formula_sources` (`country` ASC);
+
+
+-- -----------------------------------------------------
+-- Table `carribo`.`formula_mutations`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `carribo`.`formula_mutations` (
+  `type` ENUM('sum', 'sub', 'mul', 'div', 'min', 'max') NOT NULL,
+  `first_value_id` INT UNSIGNED NOT NULL,
+  `second_value_id` INT UNSIGNED NOT NULL,
+  `condition` VARCHAR(45) NULL,
+  PRIMARY KEY (`second_value_id`, `first_value_id`),
+  CONSTRAINT `fk_formula_mutations_formula_values1`
+    FOREIGN KEY (`first_value_id`)
+    REFERENCES `carribo`.`formula_values` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_formula_mutations_formula_values2`
+    FOREIGN KEY (`second_value_id`)
+    REFERENCES `carribo`.`formula_values` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT)
+ENGINE = InnoDB;
+
+CREATE INDEX `fk_formula_mutations_formula_values1_idx` ON `carribo`.`formula_mutations` (`first_value_id` ASC);
+
+CREATE INDEX `fk_formula_mutations_formula_values2_idx` ON `carribo`.`formula_mutations` (`second_value_id` ASC);
+
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
