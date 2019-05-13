@@ -1,29 +1,21 @@
-const mysql = require('mysql');
-const dbConfig = require('@config/db');
-
 const _ = require('lodash');
 const { Ad } = require('@models');
 
-const connection = mysql.createConnection(dbConfig);
-connection.connect();
-
 function getAd(adId, userId) {
-  const escapedUserId = connection.escape(userId);
-  const escapedAdId = connection.escape(adId);
+  const escapedUserId = Ad.escape(userId);
+  const escapedAdId = Ad.escape(adId);
 
   const gettingAdQuery = userId
     ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name, 
-      cost_dependencies.formula, wish_ads.user_id AS is_wishing FROM ads
-      LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id
+      ad_wishes.user_id AS is_wishing FROM ads
+      LEFT JOIN ad_wishes ON ad_wishes.user_id = ${escapedUserId} AND ads.id = ad_wishes.ad_id
       LEFT JOIN locations ON locations.id = ads.location_id
-      LEFT JOIN cost_dependencies ON cost_dependencies.source_country_name = locations.country_name
-      AND cost_dependencies.destination_country_name = 'Belarus'
       WHERE ads.id = ${escapedAdId};`)
     : `SELECT ads.*, locations.address, locations.country_name FROM ads
     LEFT JOIN locations ON locations.id = ads.location_id WHERE ads.id = ${escapedAdId};`;
 
   return new Promise((resolve, reject) => {
-    connection.query(gettingAdQuery, (err, result) => {
+    Ad.exec(gettingAdQuery, (err, result) => {
       if (err) {
         reject(err);
         return;
@@ -58,7 +50,7 @@ function read(req, res) {
 
 function destroy(req, res) {
   const { id } = req.params;
-  connection.query(`SELECT author_id FROM ads WHERE id = ${id}`, (err, result) => {
+  Ad.exec(`SELECT author_id FROM ads WHERE id = ${id}`, (err, result) => {
     if (err) {
       res.sendStatus(500);
       return;
@@ -81,7 +73,7 @@ function destroy(req, res) {
 function update(req, res) {
   const { id } = req.params;
 
-  connection.query('SELECT author_id FROM ads WHERE id = ?', [id], (err, result) => {
+  Ad.exec('SELECT author_id FROM ads WHERE id = ?', [id], (err, result) => {
     if (err) {
       res.sendStatus(500);
       return;
@@ -114,39 +106,34 @@ function create(req, res) {
 }
 
 function getAllAds(userId, perPage = 25, page = 0, searchQuery = '', destinationCountry = '') {
-  const escapedUserId = connection.escape(userId);
-  const escapedPerPage = connection.escape(perPage);
-  const escapedPage = connection.escape(page);
-  const escapedDestCountry = connection.escape(destinationCountry);
+  const escapedUserId = Ad.escape(userId);
+  const escapedPerPage = Ad.escape(perPage);
+  const escapedPage = Ad.escape(page);
+  const escapedDestCountry = Ad.escape(destinationCountry);
   const offset = escapedPerPage * escapedPage;
   const gettingAdQuery = userId
     ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name,
-        wish_ads.user_id IS NOT NULL AS is_wishing, cost_dependencies.formula,
+        ad_wishes.user_id IS NOT NULL AS is_wishing,
         GROUP_CONCAT(ad_photos.photo_id) AS photo_ids FROM ads
-        LEFT JOIN wish_ads ON wish_ads.user_id = ${escapedUserId} AND ads.id = wish_ads.ad_id
+        LEFT JOIN ad_wishes ON ad_wishes.user_id = ${escapedUserId} AND ads.id = ad_wishes.ad_id
         LEFT JOIN locations ON locations.id = ads.location_id
         LEFT JOIN ad_photos ON ad_photos.ad_id = ads.id
-        LEFT JOIN cost_dependencies ON cost_dependencies.source_country_name = locations.country_name
-          AND cost_dependencies.destination_country_name = ${escapedDestCountry}
         ${searchQuery}
         GROUP BY ads.id
         LIMIT ${escapedPerPage} OFFSET ${escapedPage};`)
     : `SELECT
          ads.*,
          locations.address, locations.country_name,
-         GROUP_CONCAT(ad_photos.photo_id) AS photo_ids,
-         cost_dependencies.formula
+         GROUP_CONCAT(ad_photos.photo_id) AS photo_ids
        FROM ads
        LEFT JOIN locations ON locations.id = ads.location_id
        LEFT JOIN ad_photos ON ad_photos.ad_id = ads.id
-       LEFT JOIN cost_dependencies ON cost_dependencies.source_country_name = locations.country_name
-         AND cost_dependencies.destination_country_name = ${escapedDestCountry}
        ${searchQuery}
        GROUP BY ads.id
        LIMIT ${escapedPerPage} OFFSET ${offset};`;
 
   return new Promise((resolve, reject) => {
-    connection.query(gettingAdQuery, (err, result) => {
+    Ad.exec(gettingAdQuery, (err, result) => {
       if (err) {
         reject(err);
         return;
