@@ -11,3 +11,4 @@ parserOptions:
 rules:
   import/no-unresolved: off
   key-spacing: off
+  no-underscore-dangle: off

@@ -101,22 +101,31 @@ function update(req, res) {
 
 function createAd(newAd) {
   return new Promise((resolve, reject) => {
-    connection.query(`INSERT INTO ads (cost, description, header, engine_capacity,
-      power, engine_type, year_of_production, brand, model, mileage, location_id) VALUES (${newAd.cost}, '${newAd.description}',
-      '${newAd.header}', ${newAd.engine_capacity}, ${newAd.power}, '${newAd.engine_type}', ${newAd.year_of_production},
-      '${newAd.brand}', '${newAd.model}', ${newAd.mileage}, 10)`, (err, result) => {
-      if (err) {
-        reject();
-        return;
-      }
-      resolve({ id: result.insertId });
-    });
+    newAd.location_id = 10;
+
+    const fields = [
+      'cost', 'description', 'header', 'engine_capacity', 'power', 'engine_type',
+      'year_of_production', 'brand', 'model', 'mileage', 'location_id',
+    ];
+
+    connection.query(
+      `INSERT INTO ads (${fields.join(', ')}) VALUES (${fields.map(() => '?').join(', ')});`,
+      fields.map(field => newAd[field]),
+      (err, result) => {
+        if (err) {
+          reject();
+          return;
+        }
+        resolve({ id: result.insertId });
+      },
+    );
   });
 }
 
 function create(req, res) {
   const newAd = req.body;
-  createAd(newAd).then(ad => res.status(201).json(ad.id))
+  createAd(newAd)
+    .then(ad => res.status(201).json(ad.id))
     .catch(() => res.sendStatus(500));
 }
 
