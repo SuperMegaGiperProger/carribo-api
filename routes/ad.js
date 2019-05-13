@@ -1,6 +1,8 @@
 const mysql = require('mysql');
 const dbConfig = require('@config/db');
-const searchOperations = require('@constants/searchOperations');
+
+const _ = require('lodash');
+const { Ad } = require('@models');
 
 const connection = mysql.createConnection(dbConfig);
 connection.connect();
@@ -67,13 +69,9 @@ function destroy(req, res) {
     }
 
     if (result[0].author_id === req.user.id) {
-      connection.query(`DELETE FROM ads WHERE ads.id = ${id}`, (error) => {
-        if (error) {
-          res.sendStatus(500);
-          return;
-        }
-        res.sendStatus(204);
-      });
+      Ad.delete(id)
+        .then(() => res.sendStatus(204))
+        .catch(() => res.sendStatus(500));
     } else {
       res.sendStatus(403);
     }
@@ -82,96 +80,37 @@ function destroy(req, res) {
 
 function update(req, res) {
   const { id } = req.params;
-  connection.query(`SELECT author_id FROM ads WHERE id = ${id}`, (err, result) => {
+
+  connection.query('SELECT author_id FROM ads WHERE id = ?', [id], (err, result) => {
     if (err) {
       res.sendStatus(500);
       return;
     }
+
     if (result[0] && result[0].author_id === req.user.id) {
-      res.send({
-        id: 3,
-        cost: 47000,
-        description: 'Audi A3 for sale',
-      });
+      // TODO: implement updating
+      res.sendStatus(405);
     } else {
       res.sendStatus(403);
     }
   });
 }
 
-function createAd(newAd) {
-  return new Promise((resolve, reject) => {
-    newAd.location_id = 10;
-
-    const fields = [
-      'cost', 'description', 'header', 'engine_capacity', 'power', 'engine_type',
-      'year_of_production', 'brand', 'model', 'mileage', 'location_id',
-    ];
-
-    connection.query(
-      `INSERT INTO ads (${fields.join(', ')}) VALUES (${fields.map(() => '?').join(', ')});`,
-      fields.map(field => newAd[field]),
-      (err, result) => {
-        if (err) {
-          reject();
-          return;
-        }
-        resolve({ id: result.insertId });
-      },
-    );
-  });
-}
-
 function create(req, res) {
   const newAd = req.body;
-  createAd(newAd)
+
+  const permittedFields = [
+    'cost', 'description', 'header', 'engine_capacity', 'power', 'engine_type',
+    'year_of_production', 'brand', 'model', 'mileage', 'location_id',
+  ];
+
+  const adParams = _.pick(newAd, permittedFields);
+
+  adParams.author_id = req.user.id;
+
+  Ad.create(adParams)
     .then(ad => res.status(201).json(ad.id))
     .catch(() => res.sendStatus(500));
-}
-
-function toSearchQuery(searchParamsObject) {
-  const params = Object.keys(searchParamsObject);
-  let query = '';
-
-  const getConditionQuery = (param, condition) => {
-    const operation = searchOperations[condition[0]];
-    let value;
-    switch (operation) {
-      case 'IN': {
-        value = '(';
-        const { length } = condition[1];
-        condition[1].forEach((element, i) => {
-          value = i + 1 === length ? value.concat(`'${element}')`) : value.concat(`'${element}', `);
-        });
-        break;
-      }
-
-      case 'LIKE':
-        value = `'%${condition[1]}%'`;
-        break;
-
-      default:
-        value = +condition[1] ? +condition[1] : `'${condition[1]}'`;
-        break;
-    }
-
-    return `${param} ${operation} ${value}`;
-  };
-
-  const paramsNumber = params.length;
-
-  params.forEach((param, index) => {
-    const operations = searchParamsObject[param];
-    const conditions = Object.entries(operations);
-    const conditionsNumber = conditions.length;
-
-    conditions.forEach((condition, i) => {
-      const queryOperation = index + 1 === paramsNumber && i + 1 === conditionsNumber ? '' : 'AND ';
-      const conditionQuery = getConditionQuery(param, condition);
-      query = query.concat(`${conditionQuery} ${queryOperation}`);
-    });
-  });
-  return query;
 }
 
 function getAllAds(userId, perPage = 25, page = 0, searchQuery = '', destinationCountry = '') {
@@ -240,7 +179,7 @@ function readAll(req, res) {
   page = page ? +page : undefined;
   const searchParams = req.query.q;
   const destinationCountry = req.query.country;
-  const searchQuery = searchParams ? 'WHERE '.concat(toSearchQuery(searchParams)) : undefined;
+  const searchQuery = searchParams ? 'WHERE '.concat(Ad.toSearchQuery(searchParams)) : undefined;
 
   getAllAds(userId, perPage, page, searchQuery, destinationCountry)
     .then(result => res.send(result))
@@ -251,9 +190,6 @@ function readAll(req, res) {
 }
 
 module.exports = {
-  getAllAds,
-  getAd,
-  createAd,
   read,
   destroy,
   update,
