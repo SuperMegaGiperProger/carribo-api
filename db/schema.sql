@@ -215,9 +215,9 @@ CREATE INDEX `fk_users_profiles_idx` ON `carribo`.`users` (`profile_id` ASC);
 
 
 -- -----------------------------------------------------
--- Table `carribo`.`wish_ads`
+-- Table `carribo`.`ad_wishes`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `carribo`.`wish_ads` (
+CREATE TABLE IF NOT EXISTS `carribo`.`ad_wishes` (
   `ad_id` BIGINT UNSIGNED NOT NULL,
   `user_id` BIGINT UNSIGNED NOT NULL,
   PRIMARY KEY (`ad_id`, `user_id`),
@@ -233,9 +233,9 @@ CREATE TABLE IF NOT EXISTS `carribo`.`wish_ads` (
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
-CREATE INDEX `fk_wish_ads_users_idx` ON `carribo`.`wish_ads` (`user_id` ASC);
+CREATE INDEX `fk_wish_ads_users_idx` ON `carribo`.`ad_wishes` (`user_id` ASC);
 
-CREATE INDEX `fk_wisth_ads_ads_idx` ON `carribo`.`wish_ads` (`ad_id` ASC);
+CREATE INDEX `fk_wisth_ads_ads_idx` ON `carribo`.`ad_wishes` (`ad_id` ASC);
 
 
 -- -----------------------------------------------------
@@ -463,8 +463,8 @@ CREATE TABLE IF NOT EXISTS `carribo`.`formula_mutations` (
   CONSTRAINT `fk_formula_mutations_formula_values2`
     FOREIGN KEY (`second_value_id`)
     REFERENCES `carribo`.`formula_values` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE RESTRICT)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 CREATE INDEX `fk_formula_mutations_formula_values1_idx` ON `carribo`.`formula_mutations` (`first_value_id` ASC);

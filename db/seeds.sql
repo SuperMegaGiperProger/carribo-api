@@ -232,7 +232,7 @@ VALUES
   (5       , 8 );
 
 
-INSERT INTO `wish_ads`
+INSERT INTO `ad_wishes`
   (`ad_id` , `user_id`)
 VALUES
   (1       , 1),
