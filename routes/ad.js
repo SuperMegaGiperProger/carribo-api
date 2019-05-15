@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { Ad } = require('@models');
+const { FinalCostService } = require('@services');
 
 function getAd(adId, userId) {
   const escapedUserId = Ad.escape(userId);
@@ -15,23 +16,15 @@ function getAd(adId, userId) {
     LEFT JOIN locations ON locations.id = ads.location_id WHERE ads.id = ${escapedAdId};`;
 
   return new Promise((resolve, reject) => {
-    Ad.exec(gettingAdQuery, (err, result) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      if (!result.length) {
-        resolve(null);
-      }
+    Ad.exec(gettingAdQuery)
+      .then((result) => {
+        if (!result.length) {
+          resolve(null);
+        }
 
-      const ad = result[0];
-      if (userId && ad.formula) {
-        const finalCost = Math.round(eval(ad.formula.replace('{cost}', ad.cost)));
-        ad.final_cost = finalCost || null;
-      }
-
-      resolve(ad);
-    });
+        resolve(new Ad(result[0]));
+      })
+      .catch(reject);
   });
 }
 
@@ -50,42 +43,42 @@ function read(req, res) {
 
 function destroy(req, res) {
   const { id } = req.params;
-  Ad.exec(`SELECT author_id FROM ads WHERE id = ${id}`, (err, result) => {
-    if (err) {
-      res.sendStatus(500);
-      return;
-    }
-    if (!result[0]) {
-      res.sendStatus(404);
-      return;
-    }
 
-    if (result[0].author_id === req.user.id) {
-      Ad.delete(id)
-        .then(() => res.sendStatus(204))
-        .catch(() => res.sendStatus(500));
-    } else {
-      res.sendStatus(403);
-    }
-  });
+  Ad.exec(`SELECT author_id FROM ads WHERE id = ${id}`)
+    .then((result) => {
+      if (!result[0]) {
+        res.sendStatus(404);
+        return;
+      }
+
+      if (result[0].author_id === req.user.id) {
+        Ad.delete(id)
+          .then(() => res.sendStatus(204))
+          .catch(() => res.sendStatus(500));
+      } else {
+        res.sendStatus(403);
+      }
+    })
+    .catch(() => {
+      res.sendStatus(500);
+    });
 }
 
 function update(req, res) {
   const { id } = req.params;
 
-  Ad.exec('SELECT author_id FROM ads WHERE id = ?', [id], (err, result) => {
-    if (err) {
+  Ad.exec('SELECT author_id FROM ads WHERE id = ?', [id])
+    .then((result) => {
+      if (result[0] && result[0].author_id === req.user.id) {
+        // TODO: implement updating
+        res.sendStatus(405);
+      } else {
+        res.sendStatus(403);
+      }
+    })
+    .catch(() => {
       res.sendStatus(500);
-      return;
-    }
-
-    if (result[0] && result[0].author_id === req.user.id) {
-      // TODO: implement updating
-      res.sendStatus(405);
-    } else {
-      res.sendStatus(403);
-    }
-  });
+    });
 }
 
 function create(req, res) {
@@ -109,7 +102,6 @@ function getAllAds(userId, perPage = 25, page = 0, searchQuery = '', destination
   const escapedUserId = Ad.escape(userId);
   const escapedPerPage = Ad.escape(perPage);
   const escapedPage = Ad.escape(page);
-  const escapedDestCountry = Ad.escape(destinationCountry);
   const offset = escapedPerPage * escapedPage;
   const gettingAdQuery = userId
     ? (`SELECT DISTINCT ads.*, locations.address, locations.country_name,
@@ -133,29 +125,21 @@ function getAllAds(userId, perPage = 25, page = 0, searchQuery = '', destination
        LIMIT ${escapedPerPage} OFFSET ${offset};`;
 
   return new Promise((resolve, reject) => {
-    Ad.exec(gettingAdQuery, (err, result) => {
-      if (err) {
-        reject(err);
-        return;
-      }
+    Ad.exec(gettingAdQuery)
+      .then((result) => {
+        const ads = result.map((adArgs) => {
+          const ad = new Ad(adArgs);
 
-      const ads = result;
+          if (ad.photo_ids) {
+            ad.photo_ids = ad.photo_ids.split(',').map(id => +id);
+          }
 
-      ads.forEach((ad) => {
-        if (ad.formula) {
-          const finalCost = Math.round(eval(ad.formula.replace('{cost}', ad.cost)));
-          // eslint-disable-next-line no-param-reassign
-          ad.final_cost = finalCost || null;
-        }
+          return ad;
+        });
 
-        if (ad.photo_ids) {
-          // eslint-disable-next-line no-param-reassign
-          ad.photo_ids = ad.photo_ids.split(',').map(id => +id);
-        }
-      });
-
-      resolve(result);
-    });
+        resolve(ads);
+      })
+      .catch(reject);
   });
 }
 

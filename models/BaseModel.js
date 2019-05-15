@@ -17,7 +17,12 @@ class BaseModel {
   }
 
   static exec(query, ...args) {
-    return this.connection.query(query, ...args);
+    return new Promise((res, rej) => {
+      this.connection.query(query, ...args, (err, result) => {
+        if (err) rej(err);
+        else res(result);
+      });
+    });
   }
 
   static escape(variable) {
@@ -38,10 +43,11 @@ class BaseModel {
 
   static all() {
     return new Promise((res, rej) => {
-      this.exec(`SELECT * FROM ${this.tableName}`, (err, result) => {
-        if (err) rej(err);
-        else res(result.map(args => new this(args)));
-      });
+      this.exec(`SELECT * FROM ${this.tableName}`)
+        .then((result) => {
+          res(result.map(args => new this(args)));
+        })
+        .catch(rej);
     });
   }
 
@@ -52,21 +58,14 @@ class BaseModel {
       this.exec(
         `INSERT INTO ${this.tableName} (${fields.join(', ')}) VALUES (${fields.map(() => '?').join(', ')});`,
         Object.values(args),
-        (err, result) => {
-          if (err) rej(err);
-          else res({ id: result.insertId });
-        },
-      );
+      )
+        .then(result => res({ id: result.insertId }))
+        .catch(rej);
     });
   }
 
   static delete(id) {
-    return new Promise((res, rej) => {
-      this.exec(`DELETE FROM ${this.tableName} WHERE id = ?`, [id], (err) => {
-        if (err) rej(err);
-        else res();
-      });
-    });
+    return this.exec(`DELETE FROM ${this.tableName} WHERE id = ?`, [id]);
   }
 }
 
