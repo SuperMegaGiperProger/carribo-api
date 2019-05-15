@@ -137,7 +137,10 @@ function getAllAds(userId, perPage = 25, page = 0, searchQuery = '', destination
           return ad;
         });
 
-        resolve(ads);
+        new FinalCostService()
+          .call(ads, destinationCountry)
+          .then(resolve)
+          .catch(reject);
       })
       .catch(reject);
   });

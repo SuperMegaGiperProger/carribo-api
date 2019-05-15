@@ -18,7 +18,7 @@ VALUES
 INSERT INTO `formula_values`
   (`id` , `value`  , `description`)
 VALUES
-  (1    , '{cost}' , 'Cost')             ,
+  (1    , 'cost' , 'Cost')             ,
   (2    , '235'    , 'Recycling duty')   ,
   (3    , '352'    , 'Recycling duty')   ,
   (4    , '35'     , 'Car registration') ,
@@ -28,8 +28,8 @@ VALUES
 INSERT INTO `formula_mutations`
   (`type` , `first_value_id` , `second_value_id` , `condition`)
 VALUES
-  ('sum'  , 1                , 2                 , '{age} <= 3') ,
-  ('sum'  , 1                , 3                 , '{age} > 3')  ,
+  ('sum'  , 1                , 2                 , 'age <= 3') ,
+  ('sum'  , 1                , 3                 , 'age > 3')  ,
   ('sum'  , 1                , 4                 , NULL)         ,
   ('sum'  , 1                , 5                 , NULL)         ;
 
