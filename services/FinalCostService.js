@@ -20,7 +20,13 @@ class FinalCostService {
           ads.forEach((ad) => {
             const valueId = _.at(this.formulaSources, [`[${ad.country_name}][0].value_id`])[0];
 
-            if (valueId) ad.final_cost = this.adValueCalculator(ad)(valueId);
+            if (valueId) {
+              const finalCost = this.adValueCalculator(ad)(valueId);
+
+              finalCost.final_value = Math.round(finalCost.final_value);
+
+              ad.final_cost = finalCost;
+            }
           });
 
           res(ads);

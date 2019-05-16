@@ -16,34 +16,108 @@ VALUES
 
 
 INSERT INTO `formula_values`
-  (`id` , `value`  , `description`)
+  (`id` , `value`                              , `description`)
 VALUES
-  (1    , 'cost' , 'Cost')             ,
-  (2    , '235'    , 'Recycling duty')   ,
-  (3    , '352'    , 'Recycling duty')   ,
-  (4    , '35'     , 'Car registration') ,
-  (5    , '350'    , 'Car delivery');
+  (1    , 'cost'                               , 'Cost')                         ,
+  (2    , '235'                                , 'Recycling duty')               ,
+  (3    , '352'                                , 'Recycling duty')               ,
+  (4    , '35'                                 , 'Car registration')             ,
+  (5    , '350'                                , 'Car delivery')                 ,
+
+  (6    , 'cost'                               , 'Cost')                         ,
+  (7    , '235'                                , 'Recycling duty')               ,
+  (8    , '352'                                , 'Recycling duty')               ,
+  (9    , '35'                                 , 'Car registration')             ,
+  (10   , '560'                                , 'Car delivery')                 ,
+  (11   , '57'                                 , 'Customs duty')                 ,
+
+  (12   , 'cost * 0.54'                        , 'Customs clearance')            ,
+  (13   , 'engine_capacity * 1000 * 2.5 * eur' , 'No less than 2,5 € per 1 cm³') ,
+  (14   , 'cost * 0.48'                        , 'Customs clearance')            ,
+  (15   , 'engine_capacity * 1000 * 3.5 * eur' , 'No less than 3,5 € per 1 cm³') ,
+  (16   , 'cost * 0.48'                        , 'Customs clearance')            ,
+  (17   , 'engine_capacity * 1000 * 5.5 * eur' , 'No less than 5,5 € per 1 cm³') ,
+  (18   , 'cost * 0.48'                        , 'Customs clearance')            ,
+  (19   , 'engine_capacity * 1000 * 7.5 * eur' , 'No less than 7,5 € per 1 cm³') ,
+  (20   , 'cost * 0.48'                        , 'Customs clearance')            ,
+  (21   , 'engine_capacity * 1000 * 15 * eur'  , 'No less than 15 € per 1 cm³')  ,
+  (22   , 'cost * 0.48'                        , 'Customs clearance')            ,
+  (23   , 'engine_capacity * 1000 * 20 * eur'  , 'No less than 20 € per 1 cm³')  ,
+
+  (24   , 'engine_capacity * 1000 * 1.5 * eur' , '1,5 € per 1 cm³')              ,
+  (25   , 'engine_capacity * 1000 * 1.7 * eur' , '1,7 € per 1 cm³')              ,
+  (26   , 'engine_capacity * 1000 * 2.5 * eur' , '2,5 € per 1 cm³')              ,
+  (27   , 'engine_capacity * 1000 * 2.7 * eur' , '2,7 € per 1 cm³')              ,
+  (28   , 'engine_capacity * 1000 * 3 * eur'   , '3 € per 1 cm³')                ,
+  (29   , 'engine_capacity * 1000 * 3.6 * eur' , '3,6 € per 1 cm³')              ,
+
+  (30   , 'engine_capacity * 1000 * 3 * eur'   , '3 € per 1 cm³')                ,
+  (31   , 'engine_capacity * 1000 * 3.2 * eur' , '3,2 € per 1 cm³')              ,
+  (32   , 'engine_capacity * 1000 * 3.5 * eur' , '3,5 € per 1 cm³')              ,
+  (33   , 'engine_capacity * 1000 * 4.8 * eur' , '4,8 € per 1 cm³')              ,
+  (34   , 'engine_capacity * 1000 * 5 * eur'   , '5 € per 1 cm³')                ,
+  (35   , 'engine_capacity * 1000 * 5.7 * eur' , '5,7 € per 1 cm³')              ;
 
 
 INSERT INTO `formula_mutations`
   (`type` , `first_value_id` , `second_value_id` , `condition`)
 VALUES
-  ('sum'  , 1                , 2                 , 'age <= 3') ,
-  ('sum'  , 1                , 3                 , 'age > 3')  ,
-  ('sum'  , 1                , 4                 , NULL)         ,
-  ('sum'  , 1                , 5                 , NULL)         ;
+  ('sum'  , 1                , 2                 , 'age <= 3')                                                                                                            ,
+  ('sum'  , 1                , 3                 , 'age > 3')                                                                                                             ,
+  ('sum'  , 1                , 4                 , NULL)                                                                                                                  ,
+  ('sum'  , 1                , 5                 , NULL)                                                                                                                  ,
+
+  ('sum'  , 6                , 7                 , 'age <= 3')                                                                                                            ,
+  ('sum'  , 6                , 8                 , 'age > 3')                                                                                                             ,
+  ('sum'  , 6                , 9                 , NULL)                                                                                                                  ,
+  ('sum'  , 6                , 11                , NULL)                                                                                                                  ,
+  ('sum'  , 6                , 10                , NULL)                                                                                                                  ,
+  ('sum'  , 6                , 12                , '(engine_type != \'electric\') and (age <= 3) and (cost <= 8500 * eur)')                                               ,
+  ('max'  , 12               , 13                , NULL)                                                                                                                  ,
+  ('sum'  , 6                , 14                , '(engine_type != \'electric\') and (age <= 3) and (cost > 8500 * eur) and (cost <= 16700 * eur)')                      ,
+  ('max'  , 14               , 15                , NULL)                                                                                                                  ,
+  ('sum'  , 6                , 16                , '(engine_type != \'electric\') and (age <= 3) and (cost > 16700 * eur) and (cost <= 42300 * eur)')                     ,
+  ('max'  , 16               , 17                , NULL)                                                                                                                  ,
+  ('sum'  , 6                , 18                , '(engine_type != \'electric\') and (age <= 3) and (cost > 42300 * eur) and (cost <= 84500 * eur)')                     ,
+  ('max'  , 18               , 19                , NULL)                                                                                                                  ,
+  ('sum'  , 6                , 20                , '(engine_type != \'electric\') and (age <= 3) and (cost > 84500 * eur) and (cost <= 169000 * eur)')                    ,
+  ('max'  , 20               , 21                , NULL)                                                                                                                  ,
+  ('sum'  , 6                , 22                , '(engine_type != \'electric\') and (age <= 3) and (cost > 169000 * eur)')                                              ,
+  ('max'  , 22               , 23                , NULL)                                                                                                                  ,
+
+  ('sum'  , 6                , 24                , '(engine_type != \'electric\') and (age > 3) and (age <= 5) and (engine_capacity <= 1)')                               ,
+  ('sum'  , 6                , 25                , '(engine_type != \'electric\') and (age > 3) and (age <= 5) and (engine_capacity > 1) and (engine_capacity <= 1.5)')   ,
+  ('sum'  , 6                , 26                , '(engine_type != \'electric\') and (age > 3) and (age <= 5) and (engine_capacity > 1.5) and (engine_capacity <= 1.8)') ,
+  ('sum'  , 6                , 27                , '(engine_type != \'electric\') and (age > 3) and (age <= 5) and (engine_capacity > 1.8) and (engine_capacity <= 2.3)') ,
+  ('sum'  , 6                , 28                , '(engine_type != \'electric\') and (age > 3) and (age <= 5) and (engine_capacity > 2.3) and (engine_capacity <= 3)')   ,
+  ('sum'  , 6                , 29                , '(engine_type != \'electric\') and (age > 3) and (age <= 5) and (engine_capacity > 3)')                                ,
+
+  ('sum'  , 6                , 30                , '(engine_type != \'electric\') and (age > 5) and (engine_capacity <= 1)')                                              ,
+  ('sum'  , 6                , 31                , '(engine_type != \'electric\') and (age > 5) and (engine_capacity > 1) and (engine_capacity <= 1.5)')                  ,
+  ('sum'  , 6                , 32                , '(engine_type != \'electric\') and (age > 5) and (engine_capacity > 1.5) and (engine_capacity <= 1.8)')                ,
+  ('sum'  , 6                , 33                , '(engine_type != \'electric\') and (age > 5) and (engine_capacity > 1.8) and (engine_capacity <= 2.3)')                ,
+  ('sum'  , 6                , 34                , '(engine_type != \'electric\') and (age > 5) and (engine_capacity > 2.3) and (engine_capacity <= 3)')                  ,
+  ('sum'  , 6                , 35                , '(engine_type != \'electric\') and (age > 5) and (engine_capacity > 3)');
 
 
 INSERT INTO `formulas`
   (`id` , `value_id` , `country`)
 VALUES
-  (1    , 1          , 'Belarus');
+  (1    , 1          , 'Belarus') ,
+  (2    , 6          , 'Belarus');
 
 
 INSERT INTO `formula_sources`
   (`formula_id` , `country`)
 VALUES
-  (1            , 'Russia');
+  (1            , 'Russia')     ,
+  (2            , 'Lithuania' ) ,
+  (2            , 'Latvia'    ) ,
+  (2            , 'Poland'    ) ,
+  (2            , 'Estonia'   ) ,
+  (2            , 'Spain'     ) ,
+  (2            , 'Italy'     ) ,
+  (2            , 'Germany'   );
 
 
 INSERT INTO `locations`

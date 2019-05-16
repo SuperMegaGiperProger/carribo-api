@@ -453,7 +453,7 @@ CREATE TABLE IF NOT EXISTS `carribo`.`formula_mutations` (
   `type` ENUM('sum', 'sub', 'mul', 'div', 'min', 'max') NOT NULL,
   `first_value_id` INT UNSIGNED NOT NULL,
   `second_value_id` INT UNSIGNED NOT NULL,
-  `condition` VARCHAR(45) NULL,
+  `condition` VARCHAR(255) NULL,
   PRIMARY KEY (`second_value_id`, `first_value_id`),
   CONSTRAINT `fk_formula_mutations_formula_values1`
     FOREIGN KEY (`first_value_id`)
