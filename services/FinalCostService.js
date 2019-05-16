@@ -35,6 +35,7 @@ class FinalCostService {
       const mutations = this.mutations[currentValueId] || [];
 
       let value = Parser.evaluate(currentValue.value, ad);
+      const firstValue = value;
       const proccessedMutations = [];
 
       mutations.forEach((mutation) => {
@@ -46,7 +47,12 @@ class FinalCostService {
         proccessedMutations.push({ type: mutation.type, second_value: secondValCalcResult });
       });
 
-      return { final_value: value, ...currentValue, mutations: proccessedMutations };
+      return {
+        final_value: value,
+        value: firstValue,
+        description: currentValue.description,
+        mutations: proccessedMutations,
+      };
     };
 
     return calculateValue;
