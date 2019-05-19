@@ -1,8 +1,10 @@
+require('module-alias/register');
+
 const express = require('express');
-const serverConfig = require('./config/server');
+const serverConfig = require('@config/server');
 
 const app = express();
-const middleware = require('./middleware');
+const middleware = require('@middleware');
 
 middleware(app, express);
 

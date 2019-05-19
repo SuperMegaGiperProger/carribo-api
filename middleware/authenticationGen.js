@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const mysql = require('mysql');
-const jwtConfig = require('../config/jwt.js');
-const dbConfig = require('../config/db');
+const jwtConfig = require('@config/jwt.js');
+const dbConfig = require('@config/db');
 
 const connection = mysql.createConnection(dbConfig);
 connection.connect();
@@ -23,13 +23,12 @@ const authenticationGen = toValidate => (req, res, next) => {
         errorHandler();
       } else {
         connection.query(`SELECT id FROM users WHERE username='${user.username}' AND password='${user.password}'`, (error, result) => {
-          if (error) {
-            errorHandler();
-          }
           if (result[0]) {
             req.user = result[0];
             console.log(`Authorized request: ${JSON.stringify(req.user)}`);
             next();
+          } else {
+            errorHandler();
           }
         });
       }
